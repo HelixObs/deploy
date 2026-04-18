@@ -1,0 +1,187 @@
+{
+  "__inputs": [],
+  "__requires": [],
+  "annotations": { "list": [] },
+  "description": "Entities that have at least one helix.error event. Click a row to open the Entity Inspector.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [
+    {
+      "icon": "external link",
+      "tags": [],
+      "title": "Entity Inspector",
+      "tooltip": "Open Entity Inspector",
+      "type": "link",
+      "url": "/d/helix-entity-inspector"
+    }
+  ],
+  "panels": [
+    {
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "timescaledb" },
+      "description": "Entities with at least one helix.error event, most recent first. Click a row to open the Entity Inspector.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": { "type": "auto" },
+            "filterable": true,
+            "inspect": false
+          },
+          "links": []
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "entity_id" },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": false,
+                    "title": "Inspect entity",
+                    "url": "/d/helix-entity-inspector?var-entity_id=${__value.raw}&${__url_time_range}"
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": { "type": "color-text" }
+              },
+              {
+                "id": "color",
+                "value": { "fixedColor": "blue", "mode": "fixed" }
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "error_count" },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": { "type": "color-background", "mode": "basic" }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    { "color": "yellow", "value": null },
+                    { "color": "orange", "value": 2 },
+                    { "color": "red", "value": 5 }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 20, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": ["sum"],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [{ "desc": true, "displayName": "last_error_at" }]
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-postgresql-datasource", "uid": "timescaledb" },
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  ee.entity_id,\n  e.instrument_id,\n  COUNT(*)                                              AS error_count,\n  MAX(to_timestamp(ee.timestamp_ns / 1e9))              AS last_error_at,\n  MIN(to_timestamp(ee.timestamp_ns / 1e9))              AS first_error_at,\n  jsonb_agg(ee.metadata ORDER BY ee.timestamp_ns DESC)  AS error_details\nFROM entity_events ee\nJOIN entities e ON e.id = ee.entity_id\nWHERE ee.event_name = 'helix.error'\n  AND $__timeFilter(ee.created_at)\nGROUP BY ee.entity_id, e.instrument_id\nORDER BY last_error_at DESC\nLIMIT 200",
+          "refId": "A"
+        }
+      ],
+      "title": "Entities with Errors",
+      "type": "table"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Rate of helix.error events over time.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "errors/s",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 20 },
+      "id": 2,
+      "options": {
+        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "rate(helix_events_total{event_name=\"helix.error\"}[$__rate_interval])",
+          "legendFormat": "{{instrument_id}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Error Rate",
+      "type": "timeseries"
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["helixobs", "errors"],
+  "templating": {
+    "list": [
+      {
+        "current": { "selected": false, "text": "All", "value": "$__all" },
+        "datasource": { "type": "grafana-postgresql-datasource", "uid": "timescaledb" },
+        "definition": "SELECT DISTINCT instrument_id FROM entities ORDER BY instrument_id",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Instrument",
+        "multi": false,
+        "name": "instrument_id",
+        "query": "SELECT DISTINCT instrument_id FROM entities ORDER BY instrument_id",
+        "refresh": 2,
+        "skipUrlSync": false,
+        "type": "query"
+      }
+    ]
+  },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Error Entities",
+  "uid": "helix-error-entities",
+  "version": 1
+}

@@ -1,0 +1,248 @@
+{
+  "__inputs": [],
+  "__requires": [],
+  "annotations": { "list": [] },
+  "description": "Inspect a single HelixObs entity: provenance DAG, metadata, events, traces, and logs.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [
+    {
+      "icon": "external link",
+      "tags": [],
+      "title": "Error Entities",
+      "tooltip": "Go to Error Entities list",
+      "type": "link",
+      "url": "/d/helix-error-entities"
+    }
+  ],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "title": "Provenance",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "timescaledb" },
+      "description": "Ancestor graph built from parent_ids. Nodes = entities, edges = parent→child links.",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "id" },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Inspect this entity",
+                    "targetBlank": false,
+                    "url": "/d/helix-entity-inspector?var-entity_id=${__data.fields.id}&${__url_time_range}"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 1 },
+      "id": 2,
+      "options": {
+        "nodes": {},
+        "edges": {}
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-postgresql-datasource", "uid": "timescaledb" },
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH RECURSIVE prov AS (\n  SELECT id, parent_ids, instrument_id,\n         to_timestamp(timestamp_ns / 1e9) AS ts\n  FROM entities\n  WHERE id = '$entity_id'\n  UNION ALL\n  SELECT e.id, e.parent_ids, e.instrument_id,\n         to_timestamp(e.timestamp_ns / 1e9)\n  FROM entities e\n  JOIN prov p ON e.id = ANY(p.parent_ids)\n)\nSELECT\n  id          AS \"id\",\n  id          AS \"title\",\n  instrument_id AS \"mainStat\",\n  ts          AS \"detail__time\"\nFROM prov",
+          "refId": "nodes"
+        },
+        {
+          "datasource": { "type": "grafana-postgresql-datasource", "uid": "timescaledb" },
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH RECURSIVE prov AS (\n  SELECT id, parent_ids\n  FROM entities\n  WHERE id = '$entity_id'\n  UNION ALL\n  SELECT e.id, e.parent_ids\n  FROM entities e\n  JOIN prov p ON e.id = ANY(p.parent_ids)\n)\nSELECT\n  unnest(parent_ids) || ':' || id AS \"id\",\n  unnest(parent_ids)              AS \"source\",\n  id                              AS \"target\"\nFROM prov\nWHERE array_length(parent_ids, 1) > 0",
+          "refId": "edges"
+        }
+      ],
+      "title": "Provenance DAG",
+      "transformations": [],
+      "type": "nodeGraph"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 13 },
+      "id": 3,
+      "title": "Entity Details",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "timescaledb" },
+      "description": "Metadata stored on this entity.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": { "type": "auto" },
+            "filterable": true,
+            "inspect": false
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 14 },
+      "id": 4,
+      "options": {
+        "cellHeight": "sm",
+        "footer": { "countRows": false, "fields": "", "reducer": ["sum"], "show": false },
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-postgresql-datasource", "uid": "timescaledb" },
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  id,\n  instrument_id,\n  trace_id,\n  to_timestamp(timestamp_ns / 1e9) AS \"time\",\n  parent_ids,\n  metadata\nFROM entities\nWHERE id = '$entity_id'\nLIMIT 1",
+          "refId": "A"
+        }
+      ],
+      "title": "Entity Metadata",
+      "type": "table"
+    },
+    {
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "timescaledb" },
+      "description": "All helix.* events recorded for this entity.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": { "type": "auto" },
+            "filterable": true,
+            "inspect": false
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 14 },
+      "id": 5,
+      "options": {
+        "cellHeight": "sm",
+        "footer": { "countRows": false, "fields": "", "reducer": ["sum"], "show": false },
+        "showHeader": true,
+        "sortBy": [{ "desc": false, "displayName": "time" }]
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-postgresql-datasource", "uid": "timescaledb" },
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  to_timestamp(timestamp_ns / 1e9) AS \"time\",\n  event_name,\n  metadata\nFROM entity_events\nWHERE entity_id = '$entity_id'\nORDER BY timestamp_ns ASC",
+          "refId": "A"
+        }
+      ],
+      "title": "Entity Events",
+      "type": "table"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 20 },
+      "id": 6,
+      "title": "Trace",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "tempo", "uid": "tempo" },
+      "description": "OTel trace for this entity's span.",
+      "gridPos": { "h": 20, "w": 24, "x": 0, "y": 21 },
+      "id": 7,
+      "options": {
+        "query": "$active_trace_id"
+      },
+      "targets": [
+        {
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "limit": 20,
+          "query": "$active_trace_id",
+          "queryType": "traceql",
+          "refId": "A"
+        }
+      ],
+      "title": "Span Tree",
+      "type": "traces"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 41 },
+      "id": 8,
+      "title": "Logs",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "loki", "uid": "loki" },
+      "description": "Logs tagged with this entity's ID.",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 42 },
+      "id": 9,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": false
+      },
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "expr": "{helix_entity_id=\"$entity_id\"}",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Logs",
+      "type": "logs"
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["helixobs", "entity"],
+  "templating": {
+    "list": [
+      {
+        "current": { "selected": false, "text": "", "value": "" },
+        "description": "Entity ID to inspect",
+        "hide": 0,
+        "label": "Entity ID",
+        "name": "entity_id",
+        "options": [{ "selected": true, "text": "", "value": "" }],
+        "query": "",
+        "skipUrlSync": false,
+        "type": "textbox"
+      },
+      {
+        "current": { "selected": false, "text": "", "value": "" },
+        "datasource": { "type": "grafana-postgresql-datasource", "uid": "timescaledb" },
+        "definition": "SELECT trace_id FROM entities WHERE id = '$entity_id' AND trace_id IS NOT NULL LIMIT 1",
+        "description": "Trace ID resolved from entity_id",
+        "hide": 2,
+        "label": "Trace ID",
+        "name": "active_trace_id",
+        "query": "SELECT trace_id FROM entities WHERE id = '$entity_id' AND trace_id IS NOT NULL LIMIT 1",
+        "refresh": 2,
+        "skipUrlSync": false,
+        "type": "query"
+      }
+    ]
+  },
+  "time": { "from": "now-24h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Entity Inspector",
+  "uid": "helix-entity-inspector",
+  "version": 1
+}

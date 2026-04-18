@@ -124,6 +124,17 @@ services:
       - tempo
     networks: [helix]
 
+  # ── Grafana Alloy (log collector) ────────────────────────────────────────────
+  alloy:
+    image: grafana/alloy:latest
+    command: run --server.http.listen-addr=0.0.0.0:12345 /etc/alloy/config.alloy
+    volumes:
+      - ./alloy-config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - loki
+    networks: [helix]
+
   # ── CHIME mock telescope ──────────────────────────────────────────────────────
   mock-telescope:
     build:
@@ -131,7 +142,6 @@ services:
       dockerfile: mock-telescope/Dockerfile
     environment:
       GATEWAY_ENDPOINT: "gateway:4317"
-      LOKI_URL:         "http://loki:3100"
       BLOCK_INTERVAL_S: "3"
     depends_on:
       gateway:

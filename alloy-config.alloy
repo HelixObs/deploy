@@ -1,0 +1,43 @@
+// Discover all containers on the local Docker daemon.
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+// Collect logs from every discovered container.
+loki.source.docker "containers" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.docker.containers.targets
+  forward_to = [loki.process.helix_json.receiver]
+
+  refresh_interval = "5s"
+}
+
+// Parse JSON log lines and promote helix fields as Loki stream labels.
+loki.process "helix_json" {
+  // Try to parse each line as JSON; non-JSON lines pass through unchanged.
+  stage.json {
+    expressions = {
+      helix_entity_id     = "helix_entity_id",
+      helix_instrument_id = "helix_instrument_id",
+      level               = "level",
+    }
+  }
+
+  // Promote the extracted values to stream labels.
+  stage.labels {
+    values = {
+      helix_entity_id     = "",
+      helix_instrument_id = "",
+      level               = "",
+    }
+  }
+
+  forward_to = [loki.write.default.receiver]
+}
+
+// Write to the Loki instance in the same compose network.
+loki.write "default" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}

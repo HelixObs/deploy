@@ -1,0 +1,6 @@
+# Grafana local overrides
+grafana/provisioning/dashboards/*.json.bak
+
+# Secrets — never commit these
+.env
+*.env

@@ -1,0 +1,135 @@
+name: helixobs
+
+# Bring up the full HelixObs stack:
+#   docker compose up --build
+#
+# Grafana:    http://localhost:3000  (admin / admin)
+# Prometheus: http://localhost:9090
+# Gateway:    localhost:4317  (OTLP gRPC — point your instrument here)
+# TimescaleDB: localhost:5432 (helix / helix / helixobs)
+
+volumes:
+  db-data:
+  prometheus-data:
+  loki-data:
+  tempo-data:
+  grafana-data:
+
+networks:
+  helix:
+
+services:
+
+  # ── TimescaleDB ───────────────────────────────────────────────────────────────
+  db:
+    image: timescale/timescaledb:latest-pg16
+    environment:
+      POSTGRES_USER:     helix
+      POSTGRES_PASSWORD: helix
+      POSTGRES_DB:       helixobs
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      # Migration runs automatically on first container start.
+      - ../gateway/migrations/001_init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U helix -d helixobs"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [helix]
+
+  # ── HelixObs gateway ──────────────────────────────────────────────────────────
+  gateway:
+    build:
+      context: ../gateway
+    environment:
+      GATEWAY_ADDR:        ":4317"
+      COLLECTOR_ENDPOINT:  "otel-collector:4317"
+      DB_URL:              "postgres://helix:helix@db:5432/helixobs"
+      METRICS_ADDR:        ":2112"
+    ports:
+      - "4317:4317"   # OTLP gRPC — instruments connect here
+      - "2112:2112"   # Prometheus metrics
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:2112/metrics > /dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [helix]
+
+  # ── OTel Collector ────────────────────────────────────────────────────────────
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otel/config.yml"]
+    volumes:
+      - ./otel-collector-config.yml:/etc/otel/config.yml:ro
+    networks: [helix]
+
+  # ── Tempo (trace storage) ─────────────────────────────────────────────────────
+  tempo:
+    image: grafana/tempo:latest
+    command: ["-config.file=/etc/tempo/config.yml"]
+    volumes:
+      - ./tempo-config.yml:/etc/tempo/config.yml:ro
+      - tempo-data:/var/tempo
+    networks: [helix]
+
+  # ── Loki (log storage) ────────────────────────────────────────────────────────
+  loki:
+    image: grafana/loki:latest
+    command: ["-config.file=/etc/loki/config.yml"]
+    volumes:
+      - ./loki-config.yml:/etc/loki/config.yml:ro
+      - loki-data:/loki
+    ports:
+      - "3100:3100"
+    networks: [helix]
+
+  # ── Prometheus ────────────────────────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:latest
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    networks: [helix]
+
+  # ── Grafana ───────────────────────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_AUTH_ANONYMOUS_ENABLED:  "false"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+    networks: [helix]
+
+  # ── CHIME mock telescope ──────────────────────────────────────────────────────
+  mock-telescope:
+    build:
+      context: ../          # HelixObs root — lets Dockerfile reach client-python/
+      dockerfile: mock-telescope/Dockerfile
+    environment:
+      GATEWAY_ENDPOINT: "gateway:4317"
+      LOKI_URL:         "http://loki:3100"
+      BLOCK_INTERVAL_S: "3"
+    depends_on:
+      gateway:
+        condition: service_healthy
+    networks: [helix]

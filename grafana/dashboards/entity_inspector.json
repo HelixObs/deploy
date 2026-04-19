@@ -157,8 +157,25 @@
     },
     {
       "datasource": { "type": "tempo", "uid": "tempo" },
+      "description": "All Tempo traces that contain a span for this entity, found via TraceQL attribute search.",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 21 },
+      "id": 10,
+      "targets": [
+        {
+          "datasource": { "type": "tempo", "uid": "tempo" },
+          "limit": 50,
+          "query": "{span.helix.entity.id = \"$entity_id\"}",
+          "queryType": "traceql",
+          "refId": "A"
+        }
+      ],
+      "title": "All Traces",
+      "type": "traces"
+    },
+    {
+      "datasource": { "type": "tempo", "uid": "tempo" },
       "description": "OTel trace for this entity's span.",
-      "gridPos": { "h": 20, "w": 24, "x": 0, "y": 21 },
+      "gridPos": { "h": 20, "w": 24, "x": 0, "y": 31 },
       "id": 7,
       "options": {
         "query": "$active_trace_id"
@@ -177,7 +194,7 @@
     },
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 41 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 51 },
       "id": 8,
       "title": "Logs",
       "type": "row"
@@ -185,7 +202,7 @@
     {
       "datasource": { "type": "loki", "uid": "loki" },
       "description": "Logs tagged with this entity's ID.",
-      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 42 },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 52 },
       "id": 9,
       "options": {
         "dedupStrategy": "none",

@@ -17,16 +17,16 @@ loki.process "helix_json" {
   // Try to parse each line as JSON; non-JSON lines pass through unchanged.
   stage.json {
     expressions = {
-      helix_entity_id     = "helix_entity_id",
       helix_instrument_id = "helix_instrument_id",
       level               = "level",
     }
   }
 
-  // Promote the extracted values to stream labels.
+  // Promote only low-cardinality values as stream labels.
+  // helix_entity_id is intentionally excluded — one stream per entity would
+  // exhaust Loki's stream limit. Filter by entity at query time via | json.
   stage.labels {
     values = {
-      helix_entity_id     = "",
       helix_instrument_id = "",
       level               = "",
     }

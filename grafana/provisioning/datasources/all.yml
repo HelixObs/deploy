@@ -28,7 +28,9 @@ datasources:
     jsonData:
       tracesToLogsV2:
         datasourceUid: loki
-        filterByTraceID: true
+        filterByTraceID: false
+        customQuery: true
+        query: '{helix_instrument_id=~".+"} | json | otel_trace_id = "${__trace.traceId}" | line_format `{{.level | upper}} {{.msg}}  [{{.logger}}] {{.src}}`'
       serviceMap:
         datasourceUid: prometheus
       nodeGraph:

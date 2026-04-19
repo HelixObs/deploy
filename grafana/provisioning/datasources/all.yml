@@ -19,6 +19,10 @@ datasources:
           matcherRegex: '"otelTraceID"\s*:\s*"(\w+)"'
           url: "$${__value.raw}"
           datasourceUid: tempo
+        - name: Source
+          matcherRegex: '(https://github\.com/[^\s"]+)'
+          url: "$${__value.raw}"
+          urlDisplayLabel: "Open in GitHub"
 
   - name: Tempo
     type: tempo

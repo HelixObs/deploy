@@ -143,6 +143,7 @@ services:
     environment:
       GATEWAY_ENDPOINT: "gateway:4317"
       BLOCK_INTERVAL_S: "3"
+      GITHUB_REPO:      "https://github.com/HelixObs/mock-telescope"
     depends_on:
       gateway:
         condition: service_healthy

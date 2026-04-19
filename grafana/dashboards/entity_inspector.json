@@ -334,7 +334,7 @@
           },
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT\n  id,\n  instrument_id,\n  trace_id,\n  to_timestamp(timestamp_ns / 1e9) AS \"time\"\nFROM entities\nWHERE id = '$entity_id' AND trace_id IS NOT NULL",
+          "rawSql": "SELECT\n  'creation'  AS \"operation\",\n  trace_id,\n  to_timestamp(timestamp_ns / 1e9) AS \"time\"\nFROM entities\nWHERE id = '$entity_id' AND trace_id IS NOT NULL\nUNION ALL\nSELECT\n  operation   AS \"operation\",\n  trace_id,\n  to_timestamp(timestamp_ns / 1e9) AS \"time\"\nFROM entity_operations\nWHERE entity_id = '$entity_id' AND trace_id IS NOT NULL\nORDER BY \"time\" ASC",
           "refId": "A"
         }
       ],

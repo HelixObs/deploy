@@ -3,10 +3,11 @@ name: helixobs
 # Bring up the full HelixObs stack:
 #   docker compose up --build
 #
-# Grafana:    http://localhost:3000  (admin / admin)
-# Prometheus: http://localhost:9090
-# Gateway:    localhost:4317  (OTLP gRPC — point your instrument here)
-# TimescaleDB: localhost:5432 (helix / helix / helixobs)
+# UI:          http://localhost:8081
+# Grafana:     http://localhost:3001  (admin / admin)
+# Prometheus:  http://localhost:9091
+# Gateway:     localhost:4317  (OTLP gRPC — point your instrument here)
+# TimescaleDB: localhost:5432  (helix / helix / helixobs)
 
 volumes:
   db-data:
@@ -49,6 +50,7 @@ services:
       COLLECTOR_ENDPOINT:  "otel-collector:4317"
       DB_URL:              "postgres://helix:helix@db:5432/helixobs"
       METRICS_ADDR:        ":2112"
+      API_ADDR:            ":8080"
     ports:
       - "4317:4317"   # OTLP gRPC — instruments connect here
       - "2112:2112"   # Prometheus metrics
@@ -133,6 +135,19 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - loki
+    networks: [helix]
+
+  # ── HelixObs UI ──────────────────────────────────────────────────────────────
+  ui:
+    build:
+      context: ../ui
+    environment:
+      GATEWAY_URL: "http://gateway:8080"
+    ports:
+      - "8081:3000"
+    depends_on:
+      gateway:
+        condition: service_healthy
     networks: [helix]
 
   # ── CHIME mock telescope ──────────────────────────────────────────────────────

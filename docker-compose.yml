@@ -54,6 +54,7 @@ services:
     ports:
       - "4317:4317"   # OTLP gRPC — instruments connect here
       - "2112:2112"   # Prometheus metrics
+      - "8080:8080"   # Graph API
     depends_on:
       db:
         condition: service_healthy

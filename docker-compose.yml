@@ -4,6 +4,7 @@ name: helixobs
 #   docker compose up --build
 #
 # UI:          http://localhost:8081
+# Sherlock:    http://localhost:8082
 # Grafana:     http://localhost:3001  (admin / admin)
 # Prometheus:  http://localhost:9091
 # Gateway:     localhost:4317  (OTLP gRPC — point your instrument here)
@@ -138,17 +139,31 @@ services:
       - loki
     networks: [helix]
 
+  # ── Sherlock AI troubleshooting agent ────────────────────────────────────────
+  sherlock:
+    build:
+      context: ../sherlock
+    environment:
+      SHERLOCK_INSTRUMENTS_DIR: "/app/instruments"
+      ANTHROPIC_API_KEY:        "${ANTHROPIC_API_KEY}"
+    ports:
+      - "8082:8082"
+    networks: [helix]
+
   # ── HelixObs UI ──────────────────────────────────────────────────────────────
   ui:
     build:
       context: ../ui
     environment:
-      GATEWAY_URL: "http://gateway:8080"
+      GATEWAY_URL:  "http://gateway:8080"
+      SHERLOCK_URL: "http://sherlock:8082"
     ports:
       - "8081:3000"
     depends_on:
       gateway:
         condition: service_healthy
+      sherlock:
+        condition: service_started
     networks: [helix]
 
   # ── CHIME mock telescope ──────────────────────────────────────────────────────

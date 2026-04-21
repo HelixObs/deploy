@@ -7,6 +7,11 @@ receivers:
 exporters:
   otlphttp:
     endpoint: http://tempo:4318
+  loki:
+    endpoint: http://loki:3100/loki/api/v1/push
+    default_labels_enabled:
+      exporter: false
+      job: true
   debug:
     verbosity: basic
 
@@ -15,3 +20,6 @@ service:
     traces:
       receivers: [otlp]
       exporters: [otlphttp, debug]
+    logs:
+      receivers: [otlp]
+      exporters: [loki, debug]

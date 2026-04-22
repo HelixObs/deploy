@@ -25,14 +25,21 @@ services:
   # ── TimescaleDB ───────────────────────────────────────────────────────────────
   db:
     image: timescale/timescaledb:latest-pg16
+    mem_limit: 512m
     environment:
       POSTGRES_USER:     helix
       POSTGRES_PASSWORD: helix
       POSTGRES_DB:       helixobs
+      POSTGRES_INITDB_ARGS: ""
+      # Keep Postgres from grabbing all available RAM
+      PGDATA: /var/lib/postgresql/data/pgdata
+    command: postgres -c shared_buffers=128MB -c work_mem=4MB -c max_connections=50
     volumes:
       - db-data:/var/lib/postgresql/data
-      # Migration runs automatically on first container start.
+      # Migrations run automatically on first container start.
       - ../gateway/migrations/001_init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
+      - ../gateway/migrations/002_instrument_memory.sql:/docker-entrypoint-initdb.d/002_instrument_memory.sql:ro
+      - ../gateway/migrations/003_trace_dedup.sql:/docker-entrypoint-initdb.d/003_trace_dedup.sql:ro
     ports:
       - "5432:5432"
     healthcheck:
@@ -77,6 +84,7 @@ services:
   # ── Tempo (trace storage) ─────────────────────────────────────────────────────
   tempo:
     image: grafana/tempo:2.6.1
+    mem_limit: 384m
     command: ["-config.file=/etc/tempo/config.yml"]
     volumes:
       - ./tempo-config.yml:/etc/tempo/config.yml:ro
@@ -89,6 +97,7 @@ services:
   # ── Loki (log storage) ────────────────────────────────────────────────────────
   loki:
     image: grafana/loki:latest
+    mem_limit: 256m
     command: ["-config.file=/etc/loki/config.yml"]
     volumes:
       - ./loki-config.yml:/etc/loki/config.yml:ro
@@ -100,6 +109,7 @@ services:
   # ── Prometheus ────────────────────────────────────────────────────────────────
   prometheus:
     image: prom/prometheus:latest
+    mem_limit: 128m
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"
@@ -113,6 +123,7 @@ services:
   # ── Grafana ───────────────────────────────────────────────────────────────────
   grafana:
     image: grafana/grafana:latest
+    mem_limit: 128m
     environment:
       GF_SECURITY_ADMIN_PASSWORD: admin
       GF_AUTH_ANONYMOUS_ENABLED:  "false"
@@ -131,7 +142,9 @@ services:
   # ── Grafana Alloy (log collector) ────────────────────────────────────────────
   alloy:
     image: grafana/alloy:latest
+    mem_limit: 128m
     command: run --server.http.listen-addr=0.0.0.0:12345 /etc/alloy/config.alloy
+    restart: always
     volumes:
       - ./alloy-config.alloy:/etc/alloy/config.alloy:ro
       - /var/run/docker.sock:/var/run/docker.sock
@@ -146,6 +159,8 @@ services:
     environment:
       SHERLOCK_INSTRUMENTS_DIR: "/app/instruments"
       ANTHROPIC_API_KEY:        "${ANTHROPIC_API_KEY}"
+      GATEWAY_DB_URL:           "postgres://helix:helix@db:5432/helixobs"
+      GITHUB_TOKEN:             "${GITHUB_TOKEN:-}"
     ports:
       - "8082:8082"
     networks: [helix]

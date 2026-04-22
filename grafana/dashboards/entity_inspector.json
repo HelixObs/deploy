@@ -451,25 +451,32 @@
         "type": "textbox"
       },
       {
-        "allowCustomValue": true,
         "current": {
           "selected": false,
           "text": "",
           "value": ""
         },
-        "datasource": {
-          "type": "grafana-postgresql-datasource",
-          "uid": "timescaledb"
-        },
-        "definition": "SELECT trace_id FROM entities WHERE id = '$entity_id' AND trace_id IS NOT NULL LIMIT 1",
         "description": "Active trace \u2014 defaults to entity's own trace; click a row in All Traces to switch",
         "hide": 2,
         "label": "Active Trace",
         "name": "active_trace_id",
         "query": "SELECT trace_id FROM entities WHERE id = '$entity_id' AND trace_id IS NOT NULL LIMIT 1",
-        "refresh": 2,
         "skipUrlSync": false,
-        "type": "query"
+        "type": "query",
+        "options": [
+          {
+            "selected": true,
+            "text": "",
+            "value": ""
+          }
+        ],
+        "allowCustomValue": true,
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "timescaledb"
+        },
+        "definition": "SELECT trace_id FROM entities WHERE id = '$entity_id' AND trace_id IS NOT NULL LIMIT 1",
+        "refresh": 2
       }
     ]
   },

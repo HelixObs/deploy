@@ -26,6 +26,7 @@ services:
   db:
     image: timescale/timescaledb:latest-pg16
     mem_limit: 512m
+    restart: unless-stopped
     environment:
       POSTGRES_USER:     helix
       POSTGRES_PASSWORD: helix
@@ -40,6 +41,7 @@ services:
       - ../gateway/migrations/001_init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
       - ../gateway/migrations/002_instrument_memory.sql:/docker-entrypoint-initdb.d/002_instrument_memory.sql:ro
       - ../gateway/migrations/003_trace_dedup.sql:/docker-entrypoint-initdb.d/003_trace_dedup.sql:ro
+      - ../gateway/migrations/004_sherlock_usage.sql:/docker-entrypoint-initdb.d/004_sherlock_usage.sql:ro
     ports:
       - "5432:5432"
     healthcheck:
@@ -53,6 +55,7 @@ services:
   gateway:
     build:
       context: ../gateway
+    restart: unless-stopped
     environment:
       GATEWAY_ADDR:        ":4317"
       COLLECTOR_ENDPOINT:  "otel-collector:4317"
@@ -84,7 +87,8 @@ services:
   # ── Tempo (trace storage) ─────────────────────────────────────────────────────
   tempo:
     image: grafana/tempo:2.6.1
-    mem_limit: 384m
+    mem_limit: 1g
+    restart: unless-stopped
     command: ["-config.file=/etc/tempo/config.yml"]
     volumes:
       - ./tempo-config.yml:/etc/tempo/config.yml:ro
@@ -106,6 +110,20 @@ services:
       - "3101:3100"
     networks: [helix]
 
+  # ── Node Exporter (host metrics) ─────────────────────────────────────────────
+  node-exporter:
+    image: prom/node-exporter:latest
+    mem_limit: 64m
+    command:
+      - "--collector.disable-defaults"
+      - "--collector.cpu"
+      - "--collector.meminfo"
+      - "--collector.filesystem"
+      - "--collector.diskstats"
+      - "--collector.netdev"
+      - "--collector.loadavg"
+    networks: [helix]
+
   # ── Prometheus ────────────────────────────────────────────────────────────────
   prometheus:
     image: prom/prometheus:latest
@@ -113,6 +131,7 @@ services:
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"
+      - "--web.enable-lifecycle"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus-data:/prometheus
@@ -163,6 +182,7 @@ services:
       GITHUB_TOKEN:             "${GITHUB_TOKEN:-}"
     ports:
       - "8082:8082"
+      - "9102:9102"   # Prometheus metrics
     networks: [helix]
 
   # ── HelixObs UI ──────────────────────────────────────────────────────────────

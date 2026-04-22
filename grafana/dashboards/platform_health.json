@@ -1,0 +1,246 @@
+{
+  "__inputs": [],
+  "__requires": [],
+  "description": "HelixObs platform health — host, gateway, and backend services.",
+  "editable": true,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0},
+      "id": 1,
+      "title": "Host",
+      "type": "row"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0, "max": 1,
+          "thresholds": {"mode": "absolute", "steps": [
+            {"color": "green", "value": null},
+            {"color": "yellow", "value": 0.8},
+            {"color": "red", "value": 0.95}
+          ]},
+          "custom": {"fillOpacity": 10}
+        }
+      },
+      "gridPos": {"h": 6, "w": 6, "x": 0, "y": 1},
+      "id": 2,
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}},
+      "title": "CPU Utilisation",
+      "type": "gauge",
+      "targets": [{"expr": "1 - avg(rate(node_cpu_seconds_total{mode=\"idle\"}[5m]))", "legendFormat": "cpu", "refId": "A"}]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0, "max": 1,
+          "thresholds": {"mode": "absolute", "steps": [
+            {"color": "green", "value": null},
+            {"color": "yellow", "value": 0.85},
+            {"color": "red", "value": 0.95}
+          ]}
+        }
+      },
+      "gridPos": {"h": 6, "w": 6, "x": 6, "y": 1},
+      "id": 3,
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}},
+      "title": "Memory Utilisation",
+      "type": "gauge",
+      "targets": [{"expr": "1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes", "legendFormat": "memory", "refId": "A"}]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0, "max": 1,
+          "thresholds": {"mode": "absolute", "steps": [
+            {"color": "green", "value": null},
+            {"color": "yellow", "value": 0.8},
+            {"color": "red", "value": 0.9}
+          ]}
+        }
+      },
+      "gridPos": {"h": 6, "w": 6, "x": 12, "y": 1},
+      "id": 4,
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}},
+      "title": "Disk Utilisation",
+      "type": "gauge",
+      "targets": [{"expr": "1 - min(node_filesystem_avail_bytes{fstype!~\"tmpfs|overlay|rootfs\"}) / min(node_filesystem_size_bytes{fstype!~\"tmpfs|overlay|rootfs\"})", "legendFormat": "disk", "refId": "A"}]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "Bps"}},
+      "gridPos": {"h": 6, "w": 6, "x": 18, "y": 1},
+      "id": 5,
+      "title": "Network I/O",
+      "type": "timeseries",
+      "targets": [
+        {"expr": "rate(node_network_receive_bytes_total[5m])", "legendFormat": "rx {{device}}", "refId": "A"},
+        {"expr": "rate(node_network_transmit_bytes_total[5m])", "legendFormat": "tx {{device}}", "refId": "B"}
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 7},
+      "id": 10,
+      "title": "Gateway",
+      "type": "row"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "reqps"}},
+      "gridPos": {"h": 6, "w": 6, "x": 0, "y": 8},
+      "id": 11,
+      "title": "Entity Ingestion Rate",
+      "type": "timeseries",
+      "targets": [
+        {"expr": "sum(rate(helix_entities_total[1m])) by (instrument_id)", "legendFormat": "{{instrument_id}}", "refId": "A"},
+        {"expr": "rate(helix_spans_passthrough_total[1m])", "legendFormat": "passthrough", "refId": "B"}
+      ]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "s"}},
+      "gridPos": {"h": 6, "w": 6, "x": 6, "y": 8},
+      "id": 12,
+      "title": "Span Processing Latency",
+      "type": "timeseries",
+      "targets": [
+        {"expr": "histogram_quantile(0.50, sum(rate(helix_span_processing_duration_seconds_bucket[5m])) by (le))", "legendFormat": "p50", "refId": "A"},
+        {"expr": "histogram_quantile(0.95, sum(rate(helix_span_processing_duration_seconds_bucket[5m])) by (le))", "legendFormat": "p95", "refId": "B"},
+        {"expr": "histogram_quantile(0.99, sum(rate(helix_span_processing_duration_seconds_bucket[5m])) by (le))", "legendFormat": "p99", "refId": "C"}
+      ]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "percentunit", "min": 0, "max": 1}},
+      "gridPos": {"h": 6, "w": 6, "x": 12, "y": 8},
+      "id": 13,
+      "title": "Parent Resolution Success Rate",
+      "type": "timeseries",
+      "targets": [{"expr": "rate(helix_parent_resolution_total{result=\"success\"}[5m]) / rate(helix_parent_resolution_total[5m])", "legendFormat": "{{instrument_id}}", "refId": "A"}]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "percentunit", "min": 0, "max": 1}},
+      "gridPos": {"h": 6, "w": 6, "x": 18, "y": 8},
+      "id": 14,
+      "title": "DB Write Success Rate",
+      "type": "timeseries",
+      "targets": [{"expr": "rate(helix_db_writes_total{status=\"success\"}[5m]) / rate(helix_db_writes_total[5m])", "legendFormat": "{{table}}", "refId": "A"}]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "decbytes"}},
+      "gridPos": {"h": 6, "w": 6, "x": 0, "y": 14},
+      "id": 15,
+      "title": "Gateway RSS Memory",
+      "type": "timeseries",
+      "targets": [{"expr": "process_resident_memory_bytes{job=\"gateway\"}", "legendFormat": "rss", "refId": "A"}]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "short"}},
+      "gridPos": {"h": 6, "w": 6, "x": 6, "y": 14},
+      "id": 16,
+      "title": "Trace Store Size",
+      "type": "timeseries",
+      "targets": [{"expr": "helix_trace_store_size", "legendFormat": "entries", "refId": "A"}]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "short"}},
+      "gridPos": {"h": 6, "w": 6, "x": 12, "y": 14},
+      "id": 17,
+      "title": "DB Connection Pool",
+      "type": "timeseries",
+      "targets": [
+        {"expr": "helix_db_connections_in_use", "legendFormat": "in use", "refId": "A"},
+        {"expr": "helix_db_connections_total", "legendFormat": "total", "refId": "B"}
+      ]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "short"}},
+      "gridPos": {"h": 6, "w": 6, "x": 18, "y": 14},
+      "id": 18,
+      "title": "Error Rate by Instrument",
+      "type": "timeseries",
+      "targets": [{"expr": "rate(helix_errors_total[5m])", "legendFormat": "{{instrument_id}}", "refId": "A"}]
+    },
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 20},
+      "id": 20,
+      "title": "Backends",
+      "type": "row"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {"mode": "absolute", "steps": [
+            {"color": "red", "value": null},
+            {"color": "green", "value": 1}
+          ]},
+          "mappings": [{"type": "value", "options": {"0": {"text": "DOWN"}, "1": {"text": "UP"}}}]
+        }
+      },
+      "gridPos": {"h": 4, "w": 3, "x": 0, "y": 21},
+      "id": 21,
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "orientation": "auto", "textMode": "auto", "colorMode": "background"},
+      "title": "Gateway",
+      "type": "stat",
+      "targets": [{"expr": "up{job=\"gateway\"}", "legendFormat": "", "refId": "A"}]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "Bps"}},
+      "gridPos": {"h": 6, "w": 7, "x": 3, "y": 21},
+      "id": 22,
+      "title": "OTel Collector — Spans",
+      "type": "timeseries",
+      "targets": [
+        {"expr": "rate(otelcol_receiver_accepted_spans_total[1m])", "legendFormat": "accepted", "refId": "A"},
+        {"expr": "rate(otelcol_receiver_refused_spans_total[1m])", "legendFormat": "refused", "refId": "B"},
+        {"expr": "rate(otelcol_exporter_sent_spans_total[1m])", "legendFormat": "exported", "refId": "C"}
+      ]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "reqps"}},
+      "gridPos": {"h": 6, "w": 7, "x": 10, "y": 21},
+      "id": 23,
+      "title": "Loki Ingestion Rate",
+      "type": "timeseries",
+      "targets": [{"expr": "rate(loki_ingester_streams_created_total[5m])", "legendFormat": "streams/s", "refId": "A"}]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "reqps"}},
+      "gridPos": {"h": 6, "w": 7, "x": 17, "y": 21},
+      "id": 24,
+      "title": "Tempo Trace Ingestion",
+      "type": "timeseries",
+      "targets": [{"expr": "rate(tempo_ingester_traces_created_total[5m])", "legendFormat": "traces/s", "refId": "A"}]
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "tags": ["helixobs", "platform"],
+  "time": {"from": "now-1h", "to": "now"},
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "HelixObs Platform Health",
+  "uid": "helix-platform-health",
+  "version": 1
+}

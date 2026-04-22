@@ -10,6 +10,20 @@ distributor:
         http:
           endpoint: 0.0.0.0:4318
 
+ingester:
+  # Flush head block to disk every 5 minutes (default 30m).
+  # Smaller blocks = less RAM needed per compaction.
+  max_block_duration: 5m
+  # Cap each block at 50k traces so a single flush is bounded.
+  max_block_bytes: 52428800  # 50 MiB
+
+compactor:
+  compaction:
+    # Only compact 2 blocks at a time — limits peak RAM during merge.
+    max_compaction_objects: 2000000
+    # Keep traces for 24 hours then delete.
+    block_retention: 24h
+
 storage:
   trace:
     backend: local
@@ -17,3 +31,5 @@ storage:
       path: /var/tempo/blocks
     wal:
       path: /var/tempo/wal
+    # How many blocks to cache index entries for in RAM.
+    cache: none

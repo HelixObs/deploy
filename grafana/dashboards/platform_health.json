@@ -73,7 +73,8 @@
           "legendFormat": "cpu",
           "refId": "A"
         }
-      ]
+      ],
+      "description": "Percentage of CPU time not spent idle (1 \u2212 idle / total). Warning: > 80% sustained for 10 min. Critical: > 95% for 5 min."
     },
     {
       "datasource": {
@@ -126,7 +127,8 @@
           "legendFormat": "memory",
           "refId": "A"
         }
-      ]
+      ],
+      "description": "Fraction of host RAM in use (1 \u2212 MemAvailable / MemTotal). Warning: > 85%. Critical: > 95%."
     },
     {
       "datasource": {
@@ -179,7 +181,8 @@
           "legendFormat": "disk",
           "refId": "A"
         }
-      ]
+      ],
+      "description": "Fraction of filesystem capacity consumed. Warning: < 20% free. Critical: < 10% free."
     },
     {
       "datasource": {
@@ -211,7 +214,8 @@
           "legendFormat": "tx {{device}}",
           "refId": "B"
         }
-      ]
+      ],
+      "description": "Bytes received and transmitted per second across all network interfaces."
     },
     {
       "collapsed": false,
@@ -255,7 +259,8 @@
           "legendFormat": "passthrough",
           "refId": "B"
         }
-      ]
+      ],
+      "description": "Entity spans processed per second, by instrument and status. A sustained drop to zero indicates the pipeline may be stalled."
     },
     {
       "datasource": {
@@ -292,7 +297,8 @@
           "legendFormat": "p99",
           "refId": "C"
         }
-      ]
+      ],
+      "description": "End-to-end gateway processing time per helix span \u2014 from receipt to forwarding. Covers TraceStore lookup, DB write scheduling, and span mutation. Alert: p99 > 100 ms."
     },
     {
       "datasource": {
@@ -321,7 +327,8 @@
           "legendFormat": "{{instrument_id}}",
           "refId": "A"
         }
-      ]
+      ],
+      "description": "Fraction of helix.parent.ids lookups that resolved to a known span in the TraceStore. Misses are expected when a child arrives before its parent; the attribute is preserved for server-side recovery. Alert: failure rate > 1%."
     },
     {
       "datasource": {
@@ -350,7 +357,8 @@
           "legendFormat": "{{table}}",
           "refId": "A"
         }
-      ]
+      ],
+      "description": "Fraction of TimescaleDB writes that succeeded, by table. Failures are logged and metered but never block span forwarding. Alert: failure rate > 0.1%."
     },
     {
       "datasource": {
@@ -377,7 +385,8 @@
           "legendFormat": "rss",
           "refId": "A"
         }
-      ]
+      ],
+      "description": "Resident set size of the gateway process in bytes. Sustained growth beyond baseline may indicate a TraceStore leak or goroutine accumulation. Alert: > 1.5 GB."
     },
     {
       "datasource": {
@@ -404,7 +413,8 @@
           "legendFormat": "entries",
           "refId": "A"
         }
-      ]
+      ],
+      "description": "Number of entity_id \u2192 SpanRef entries currently held in the in-process TraceStore. When the store is full the oldest entry is evicted (FIFO). Configured maximum: 500 k entries."
     },
     {
       "datasource": {
@@ -436,7 +446,8 @@
           "legendFormat": "total",
           "refId": "B"
         }
-      ]
+      ],
+      "description": "pgxpool connections currently acquired vs total pool size. High utilisation means write goroutines are queuing behind the pool. Alert: > 80% utilised."
     },
     {
       "datasource": {
@@ -463,7 +474,8 @@
           "legendFormat": "{{instrument_id}}",
           "refId": "A"
         }
-      ]
+      ],
+      "description": "Rate of helix.error span events per second, by instrument. These are domain errors (e.g. RFI contamination, classifier failure), not gateway errors. Alert: > 5% of entity rate for 5 min."
     },
     {
       "datasource": {
@@ -500,7 +512,8 @@
           "legendFormat": "p99",
           "refId": "C"
         }
-      ]
+      ],
+      "description": "Time to resolve one parent entity ID to a span link, from lookup start through link construction. Measures the hot path through the TraceStore mutex. Sub-millisecond is normal; spikes indicate lock contention."
     },
     {
       "datasource": {
@@ -532,7 +545,8 @@
           "legendFormat": "p95",
           "refId": "B"
         }
-      ]
+      ],
+      "description": "Time for a single TraceStore Get() call, including mutex acquisition. Expected baseline: < 10 \u00b5s. Elevated values indicate lock contention from high concurrent span throughput."
     },
     {
       "collapsed": false,
@@ -607,7 +621,8 @@
           "legendFormat": "",
           "refId": "A"
         }
-      ]
+      ],
+      "description": "Gateway process uptime derived from process_start_time_seconds. Resets on container restart."
     },
     {
       "datasource": {
@@ -644,7 +659,8 @@
           "legendFormat": "exported",
           "refId": "C"
         }
-      ]
+      ],
+      "description": "Spans accepted from the gateway vs successfully exported to Tempo. A gap between the two indicates export failures. refused_spans > 0 signals backpressure \u2014 the collector is falling behind."
     },
     {
       "datasource": {
@@ -690,7 +706,8 @@
           "legendFormat": "bytes/s",
           "refId": "B"
         }
-      ]
+      ],
+      "description": "Log lines per second arriving at the Loki distributor. A drop to zero means the Alloy sidecar log shipper has stalled."
     },
     {
       "datasource": {
@@ -717,7 +734,8 @@
           "legendFormat": "traces/s",
           "refId": "A"
         }
-      ]
+      ],
+      "description": "Traces received by Tempo and blocks flushed to storage. Block flushes complete a trace's lifecycle; a growing gap between received and flushed indicates flush lag."
     }
   ],
   "refresh": "30s",

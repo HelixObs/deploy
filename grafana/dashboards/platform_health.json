@@ -217,12 +217,15 @@
     },
     {
       "datasource": {"type": "prometheus", "uid": "prometheus"},
-      "fieldConfig": {"defaults": {"unit": "reqps"}},
+      "fieldConfig": {"defaults": {"unit": "short"}, "overrides": [{"matcher": {"id": "byName", "options": "bytes/s"}, "properties": [{"id": "unit", "value": "Bps"}]}]},
       "gridPos": {"h": 6, "w": 7, "x": 10, "y": 21},
       "id": 23,
       "title": "Loki Ingestion Rate",
       "type": "timeseries",
-      "targets": [{"expr": "rate(loki_ingester_streams_created_total[5m])", "legendFormat": "streams/s", "refId": "A"}]
+      "targets": [
+        {"expr": "sum(rate(loki_distributor_lines_received_total[5m]))", "legendFormat": "lines/s", "refId": "A"},
+        {"expr": "sum(rate(loki_distributor_bytes_received_total[5m]))", "legendFormat": "bytes/s", "refId": "B"}
+      ]
     },
     {
       "datasource": {"type": "prometheus", "uid": "prometheus"},

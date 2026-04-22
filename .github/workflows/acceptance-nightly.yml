@@ -1,0 +1,63 @@
+name: Acceptance Tests (Full T1 including Sherlock)
+
+on:
+  schedule:
+    - cron: "0 3 * * *"   # 03:00 UTC nightly
+  workflow_dispatch:        # manual trigger
+
+jobs:
+  acceptance-full:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start Docker Compose stack
+        run: docker compose -f deploy/docker-compose.yml up -d --build
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Wait for stack to be healthy
+        run: |
+          echo "Waiting for gateway healthcheck..."
+          for i in $(seq 1 24); do
+            if curl -sf http://localhost:2112/metrics > /dev/null; then
+              echo "Gateway healthy after ${i}×5s"
+              break
+            fi
+            sleep 5
+          done
+          sleep 15
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install -e "client-python[dev]"
+          pip install -r tests/acceptance/requirements.txt
+
+      - name: Run all T1 acceptance tests
+        working-directory: tests/acceptance
+        run: pytest -v -m "not destructive" --tb=short
+        env:
+          DB_URL:           postgres://helix:helix@localhost:5432/helixobs
+          GATEWAY_URL:      http://localhost:8080
+          SHERLOCK_URL:     http://localhost:8082
+          TEMPO_URL:        http://localhost:3201
+          PROMETHEUS_URL:   http://localhost:9091
+          LOKI_URL:         http://localhost:3101
+          OTLP_ENDPOINT:    localhost:4317
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Dump logs on failure
+        if: failure()
+        run: docker compose -f deploy/docker-compose.yml logs --tail=200
+
+      - name: Tear down stack
+        if: always()
+        run: docker compose -f deploy/docker-compose.yml down -v

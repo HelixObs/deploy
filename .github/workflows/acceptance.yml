@@ -1,0 +1,63 @@
+name: Acceptance Tests (T1, no Sherlock)
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start Docker Compose stack
+        run: docker compose -f deploy/docker-compose.yml up -d --build
+        env:
+          ANTHROPIC_API_KEY: placeholder  # Sherlock starts but tests skip Claude calls
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Wait for stack to be healthy
+        run: |
+          echo "Waiting for gateway healthcheck..."
+          for i in $(seq 1 24); do
+            if curl -sf http://localhost:2112/metrics > /dev/null; then
+              echo "Gateway healthy after ${i}×5s"
+              break
+            fi
+            echo "  attempt $i/24..."
+            sleep 5
+          done
+          # Extra settle time for Prometheus scrape targets
+          sleep 15
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install -e "client-python[dev]"
+          pip install -r tests/acceptance/requirements.txt
+
+      - name: Run acceptance tests (non-Sherlock)
+        working-directory: tests/acceptance
+        run: pytest -v -m "not sherlock and not destructive" --tb=short
+        env:
+          DB_URL:         postgres://helix:helix@localhost:5432/helixobs
+          GATEWAY_URL:    http://localhost:8080
+          SHERLOCK_URL:   http://localhost:8082
+          TEMPO_URL:      http://localhost:3201
+          PROMETHEUS_URL: http://localhost:9091
+          OTLP_ENDPOINT:  localhost:4317
+
+      - name: Dump logs on failure
+        if: failure()
+        run: docker compose -f deploy/docker-compose.yml logs --tail=100
+
+      - name: Tear down stack
+        if: always()
+        run: docker compose -f deploy/docker-compose.yml down -v

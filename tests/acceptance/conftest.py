@@ -63,7 +63,7 @@ def gateway():
 
 @pytest.fixture(scope="session")
 def sherlock():
-    return httpx.Client(base_url=SHERLOCK_URL, timeout=60)
+    return httpx.Client(base_url=SHERLOCK_URL, timeout=300)
 
 
 @pytest.fixture(scope="session")

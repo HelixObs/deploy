@@ -56,10 +56,13 @@ def test_T1_20_diagnosis_starts_and_streams(instrument, db_cursor, sherlock):
     types = {c["type"] for c in chunks}
     assert "evidence" in types or "step" in types, "no evidence or step chunks"
 
-    done = next((c for c in chunks if c["type"] == "done"), None)
-    assert done is not None, "no 'done' chunk"
-    assert "model" in done.get("data", {}), "done chunk missing model"
-    assert "cost_usd" in done.get("data", {}), "done chunk missing cost_usd"
+    # Investigation ends with either a 'done' chunk (complete) or a 'question' chunk
+    # (paused waiting for operator reply — tested separately in T1-23).
+    terminal = next((c for c in chunks if c["type"] in {"done", "question"}), None)
+    assert terminal is not None, "investigation did not reach a terminal state (done or question)"
+    if terminal["type"] == "done":
+        assert "model" in terminal.get("data", {}), "done chunk missing model"
+        assert "cost_usd" in terminal.get("data", {}), "done chunk missing cost_usd"
 
     error = next((c for c in chunks if c["type"] == "error"), None)
     assert error is None, f"unexpected error chunk: {error}"
@@ -76,9 +79,15 @@ def test_T1_21_hypothesis_saved_to_memory(instrument, db_cursor, sherlock):
     wait_for_entity(db_cursor, eid)
 
     chunks = _stream_diagnosis(sherlock, eid)
-    done = next((c for c in chunks if c["type"] == "done"), None)
-    assert done is not None
 
+    # Investigation may end with 'done' (complete) or 'question' (operator pause).
+    terminal = next((c for c in chunks if c["type"] in {"done", "question"}), None)
+    assert terminal is not None, "investigation did not reach a terminal state"
+
+    if terminal["type"] == "question":
+        pytest.skip("investigation paused waiting for operator reply — hypothesis not yet submitted")
+
+    done = terminal
     if not done.get("data", {}).get("successful"):
         pytest.skip("investigation did not complete successfully (hit turn cap) — memory write skipped")
 

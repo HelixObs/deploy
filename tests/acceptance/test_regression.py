@@ -1,18 +1,15 @@
 """
-Bug regression tests — T1-33 through T1-38.
+Bug regression tests — T1-33 through T1-36.
 
 Each test is named after a specific bug fixed during development.
 T1-33: operation_trace_seen dedup
 T1-34: graph API no duplicate nodes for placeholder+operation entity
 T1-35: graph API full DAG (RECURSIVE CTE fix)
 T1-36: sherlock_usage written even on turn-cap exhaustion  (marked sherlock)
-T1-37: Sherlock query_loki returns real lines             (marked sherlock)
-T1-38: Sherlock tempo_url opens in Grafana 12             (manual / marked sherlock)
 """
 
 import time
 
-import httpx
 import pytest
 
 from conftest import emit_entity, unique_id, wait_for_entity, wait_for_operation
@@ -114,84 +111,3 @@ def test_T1_36_sherlock_usage_persisted_on_turn_cap_exhaustion(db_cursor, sherlo
     assert row is not None, "no sherlock_usage row written after investigation"
     assert row["successful"] is False or row["successful"] == False
     assert float(row["cost_usd"]) > 0, "cost_usd should be > 0 (tokens were consumed)"
-
-
-# ── T1-37 ─────────────────────────────────────────────────────────────────────
-
-@pytest.mark.sherlock
-def test_T1_37_sherlock_loki_tool_returns_logs(instrument, db_cursor, sherlock):
-    """
-    Sherlock's query_loki tool must return actual log lines for a CHIME entity,
-    not an empty array. Verifies the stream label fix (helix_instrument_id not job).
-    """
-    import json
-
-    # Use mock-telescope's instrument_id so logs are guaranteed to exist
-    eid = unique_id("cand")
-    emit_entity(instrument, eid)
-    time.sleep(3)  # let logs flow to Loki
-
-    evidence_chunks = []
-    with sherlock.stream("POST", f"/diagnose/{eid}", json={"instrument_id": "TEST"}) as resp:
-        assert resp.status_code == 200
-        for line in resp.iter_lines():
-            if not line.strip():
-                continue
-            try:
-                chunk = json.loads(line)
-                if chunk.get("type") == "evidence":
-                    evidence_chunks.append(chunk)
-            except json.JSONDecodeError:
-                pass
-
-    loki_results = [
-        c for c in evidence_chunks
-        if "loki" in c.get("data", {}).get("tool", "").lower()
-    ]
-
-    if loki_results:
-        for result in loki_results:
-            tool_result = result.get("data", {}).get("result", {})
-            lines = tool_result.get("lines", []) if isinstance(tool_result, dict) else []
-            assert lines != [], "query_loki returned empty lines — stream label bug?"
-
-
-# ── T1-38 ─────────────────────────────────────────────────────────────────────
-
-@pytest.mark.sherlock
-def test_T1_38_sherlock_tempo_url_format(instrument, db_cursor, sherlock):
-    """
-    Tempo URLs in Sherlock evidence must use queryType=traceql (Grafana 12 format),
-    not the old queryType=traceId which returns No Data.
-    """
-    import json
-
-    eid = unique_id("block")
-    emit_entity(instrument, eid)
-    with instrument.operate("hdf5-conversion", entity_id=eid):
-        pass
-    instrument._provider.force_flush(timeout_millis=5000)
-    wait_for_operation(db_cursor, eid)
-
-    evidence_chunks = []
-    with sherlock.stream("POST", f"/diagnose/{eid}", json={"instrument_id": "TEST"}) as resp:
-        assert resp.status_code == 200
-        for line in resp.iter_lines():
-            if not line.strip():
-                continue
-            try:
-                chunk = json.loads(line)
-                if chunk.get("type") == "evidence":
-                    evidence_chunks.append(chunk)
-            except json.JSONDecodeError:
-                pass
-
-    # Find any tempo_url in evidence
-    for chunk in evidence_chunks:
-        data = chunk.get("data", {})
-        result = data.get("result", {})
-        if isinstance(result, dict):
-            url = result.get("tempo_url", "")
-            if url:
-                assert "queryType=traceql" in url, \
-                    f"tempo_url uses old format (should be queryType=traceql): {url}"

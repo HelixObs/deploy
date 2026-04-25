@@ -549,12 +549,200 @@
       "description": "Time for a single TraceStore Get() call, including mutex acquisition. Expected baseline: < 10 \u00b5s. Elevated values indicate lock contention from high concurrent span throughput."
     },
     {
+      "id": 27,
+      "title": "API Request Rate",
+      "description": "HTTP API requests per second by handler and outcome status.",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 26
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (handler, status) (rate(helix_api_requests_total[1m]))",
+          "legendFormat": "{{handler}} / {{status}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 28,
+      "title": "API Request Latency",
+      "description": "End-to-end HTTP handler latency percentiles (p50 / p95 / p99).",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 26
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "histogram_quantile(0.50, sum by (le, handler) (rate(helix_api_request_duration_seconds_bucket[5m])))",
+          "legendFormat": "p50 {{handler}}",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "histogram_quantile(0.95, sum by (le, handler) (rate(helix_api_request_duration_seconds_bucket[5m])))",
+          "legendFormat": "p95 {{handler}}",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "histogram_quantile(0.99, sum by (le, handler) (rate(helix_api_request_duration_seconds_bucket[5m])))",
+          "legendFormat": "p99 {{handler}}",
+          "refId": "C"
+        }
+      ]
+    },
+    {
+      "id": 29,
+      "title": "DB Query Rate & Success",
+      "description": "TimescaleDB read query rate and success rate by query name.",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 32
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (query, status) (rate(helix_db_queries_total[1m]))",
+          "legendFormat": "{{query}} / {{status}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 30,
+      "title": "DB Query Latency",
+      "description": "TimescaleDB read latency percentiles (p50 / p95 / p99) by query name.",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 32
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "histogram_quantile(0.50, sum by (le, query) (rate(helix_db_query_duration_seconds_bucket[5m])))",
+          "legendFormat": "p50 {{query}}",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "histogram_quantile(0.95, sum by (le, query) (rate(helix_db_query_duration_seconds_bucket[5m])))",
+          "legendFormat": "p95 {{query}}",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "histogram_quantile(0.99, sum by (le, query) (rate(helix_db_query_duration_seconds_bucket[5m])))",
+          "legendFormat": "p99 {{query}}",
+          "refId": "C"
+        }
+      ]
+    },
+    {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 27
+        "y": 39
       },
       "id": 20,
       "title": "Backends",
@@ -600,7 +788,7 @@
         "h": 4,
         "w": 3,
         "x": 0,
-        "y": 28
+        "y": 40
       },
       "id": 21,
       "options": {
@@ -638,7 +826,7 @@
         "h": 6,
         "w": 7,
         "x": 3,
-        "y": 28
+        "y": 40
       },
       "id": 22,
       "title": "OTel Collector \u2014 Spans",
@@ -690,7 +878,7 @@
         "h": 6,
         "w": 7,
         "x": 10,
-        "y": 28
+        "y": 40
       },
       "id": 23,
       "title": "Loki Ingestion Rate",
@@ -723,7 +911,7 @@
         "h": 6,
         "w": 7,
         "x": 17,
-        "y": 28
+        "y": 40
       },
       "id": 24,
       "title": "Tempo Trace Ingestion",

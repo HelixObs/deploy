@@ -13,8 +13,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check out client-python
+        uses: actions/checkout@v4
+        with:
+          repository: HelixObs/client-python
+          path: client-python
+
       - name: Start Docker Compose stack
-        run: docker compose -f deploy/docker-compose.yml up -d --build
+        run: docker compose up -d --build
         env:
           ANTHROPIC_API_KEY: placeholder  # Sherlock starts but tests skip Claude calls
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -56,8 +62,8 @@ jobs:
 
       - name: Dump logs on failure
         if: failure()
-        run: docker compose -f deploy/docker-compose.yml logs --tail=100
+        run: docker compose logs --tail=100
 
       - name: Tear down stack
         if: always()
-        run: docker compose -f deploy/docker-compose.yml down -v
+        run: docker compose down -v

@@ -317,7 +317,7 @@
           },
           "direction": "backward",
           "editorMode": "code",
-          "expr": "{helix_instrument_id=~\".+\"} | json | otel_trace_id = `$active_trace_id` | line_format `{{.level | upper}} {{.msg}}`",
+          "expr": "{helix_instrument_id=~\".+\"} | json | otel_trace_id = `$active_trace_id` | line_format `{{if .msg}}{{.level | upper}} {{.msg}}{{else}}{{__line__}}{{end}}`",
           "queryType": "range",
           "refId": "A"
         }

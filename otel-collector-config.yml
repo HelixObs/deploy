@@ -7,6 +7,8 @@ receivers:
 exporters:
   otlp_http:
     endpoint: http://tempo:4318
+  otlp_http/loki:
+    endpoint: http://loki:3100/otlp
   debug:
     verbosity: basic
 
@@ -30,3 +32,6 @@ service:
     traces:
       receivers: [otlp]
       exporters: [otlp_http, debug]
+    logs:
+      receivers: [otlp]
+      exporters: [otlp_http/loki]

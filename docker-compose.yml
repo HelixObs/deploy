@@ -207,9 +207,11 @@ services:
       context: ../          # HelixObs root — lets Dockerfile reach client-python/
       dockerfile: mock-telescope/Dockerfile
     environment:
-      GATEWAY_ENDPOINT: "gateway:4317"
-      BLOCK_INTERVAL_S: "3"
-      GITHUB_REPO:      "https://github.com/HelixObs/mock-telescope"
+      GATEWAY_ENDPOINT:            "gateway:4317"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
+      OTEL_SERVICE_NAME:           "chime.simulator"
+      BLOCK_INTERVAL_S:            "3"
+      GITHUB_REPO:                 "https://github.com/HelixObs/mock-telescope"
     depends_on:
       gateway:
         condition: service_healthy

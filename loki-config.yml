@@ -28,6 +28,22 @@ limits_config:
   ingestion_rate_mb: 32
   ingestion_burst_size_mb: 64
   reject_old_samples: false
+  # OTLP log ingestion: restrict which attributes become stream labels.
+  # Mirrors the Alloy pipeline which promotes only helix_instrument_id and level.
+  # helix_entity_id is intentionally excluded — one stream per entity exhausts
+  # Loki's stream limit; filter by entity at query time instead.
+  otlp_config:
+    resource_attributes:
+      attributes_config:
+        - action: index_label
+          attributes: [service.name]
+        - action: structured_metadata
+          regex: ".*"
+    log_attributes:
+      - action: index_label
+        attributes: [helix_instrument_id, level]
+      - action: structured_metadata
+        regex: ".*"
 
 schema_config:
   configs:

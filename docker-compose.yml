@@ -212,6 +212,10 @@ services:
       OTEL_SERVICE_NAME:           "chime.simulator"
       BLOCK_INTERVAL_S:            "3"
       GITHUB_REPO:                 "https://github.com/HelixObs/mock-telescope"
+      L1_REPLAY_FILE:              "/data/l1_headers.json"
+      REPLAY_SPEED:                "2"
+    volumes:
+      - ../l1_headers.json:/data/l1_headers.json:ro
     depends_on:
       gateway:
         condition: service_healthy

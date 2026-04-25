@@ -1,14 +1,24 @@
 {
-  "__inputs": [],
-  "__requires": [],
   "annotations": {
-    "list": []
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
   },
   "description": "Inspect a single HelixObs entity: provenance DAG, metadata, events, traces, and logs.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": null,
   "links": [
     {
       "icon": "external link",
@@ -29,6 +39,7 @@
         "y": 0
       },
       "id": 1,
+      "panels": [],
       "title": "Provenance",
       "type": "row"
     },
@@ -51,8 +62,8 @@
                 "id": "links",
                 "value": [
                   {
-                    "title": "Inspect this entity",
                     "targetBlank": false,
+                    "title": "Inspect this entity",
                     "url": "/d/helix-entity-inspector?var-entity_id=${__data.fields.id}&${__url_time_range}"
                   }
                 ]
@@ -64,30 +75,14 @@
               "id": "byName",
               "options": "arc__current"
             },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "orange",
-                  "mode": "fixed"
-                }
-              }
-            ]
+            "properties": []
           },
           {
             "matcher": {
               "id": "byName",
               "options": "arc__other"
             },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "blue",
-                  "mode": "fixed"
-                }
-              }
-            ]
+            "properties": []
           }
         ]
       },
@@ -99,9 +94,12 @@
       },
       "id": 2,
       "options": {
+        "edges": {},
+        "layoutAlgorithm": "layered",
         "nodes": {},
-        "edges": {}
+        "zoomMode": "cooperative"
       },
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
@@ -125,144 +123,7 @@
         }
       ],
       "title": "Provenance DAG",
-      "transformations": [],
       "type": "nodeGraph"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 13
-      },
-      "id": 3,
-      "title": "Entity Details",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "timescaledb"
-      },
-      "description": "Metadata stored on this entity.",
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "align": "auto",
-            "cellOptions": {
-              "type": "auto"
-            },
-            "filterable": true,
-            "inspect": false
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 6,
-        "w": 12,
-        "x": 0,
-        "y": 14
-      },
-      "id": 4,
-      "options": {
-        "cellHeight": "sm",
-        "footer": {
-          "countRows": false,
-          "fields": "",
-          "reducer": [
-            "sum"
-          ],
-          "show": false
-        },
-        "showHeader": true
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "timescaledb"
-          },
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "SELECT\n  id,\n  instrument_id,\n  trace_id,\n  to_timestamp(timestamp_ns / 1e9) AS \"time\",\n  parent_ids,\n  metadata\nFROM entities\nWHERE id = '$entity_id'\nLIMIT 1",
-          "refId": "A"
-        }
-      ],
-      "title": "Entity Metadata",
-      "type": "table"
-    },
-    {
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "timescaledb"
-      },
-      "description": "All helix.* events recorded for this entity.",
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "align": "auto",
-            "cellOptions": {
-              "type": "auto"
-            },
-            "filterable": true,
-            "inspect": false
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 6,
-        "w": 12,
-        "x": 12,
-        "y": 14
-      },
-      "id": 5,
-      "options": {
-        "cellHeight": "sm",
-        "footer": {
-          "countRows": false,
-          "fields": "",
-          "reducer": [
-            "sum"
-          ],
-          "show": false
-        },
-        "showHeader": true,
-        "sortBy": [
-          {
-            "desc": false,
-            "displayName": "time"
-          }
-        ]
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "timescaledb"
-          },
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "SELECT\n  to_timestamp(timestamp_ns / 1e9) AS \"time\",\n  event_name,\n  metadata\nFROM entity_events\nWHERE entity_id = '$entity_id'\nORDER BY timestamp_ns ASC",
-          "refId": "A"
-        }
-      ],
-      "title": "Entity Events",
-      "type": "table"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 20
-      },
-      "id": 6,
-      "title": "Trace",
-      "type": "row"
     },
     {
       "datasource": {
@@ -277,7 +138,25 @@
             "cellOptions": {
               "type": "auto"
             },
-            "filterable": true
+            "filterable": true,
+            "footer": {
+              "reducers": []
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
           }
         },
         "overrides": [
@@ -291,8 +170,8 @@
                 "id": "links",
                 "value": [
                   {
-                    "title": "View in span tree",
                     "targetBlank": false,
+                    "title": "View in span tree",
                     "url": "/d/helix-entity-inspector?var-entity_id=${entity_id}&var-active_trace_id=${__data.fields.trace_id}&${__url_time_range}"
                   }
                 ]
@@ -302,22 +181,14 @@
         ]
       },
       "gridPos": {
-        "h": 8,
-        "w": 24,
+        "h": 9,
+        "w": 12,
         "x": 0,
-        "y": 21
+        "y": 13
       },
       "id": 10,
       "options": {
         "cellHeight": "sm",
-        "footer": {
-          "countRows": false,
-          "fields": "",
-          "reducer": [
-            "sum"
-          ],
-          "show": false
-        },
         "showHeader": true,
         "sortBy": [
           {
@@ -326,6 +197,7 @@
           }
         ]
       },
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
@@ -343,46 +215,72 @@
     },
     {
       "datasource": {
-        "type": "tempo",
-        "uid": "tempo"
+        "type": "grafana-postgresql-datasource",
+        "uid": "timescaledb"
       },
-      "description": "OTel trace for this entity's span.",
+      "description": "All helix.* events recorded for this entity.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true,
+            "footer": {
+              "reducers": []
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
       "gridPos": {
-        "h": 20,
-        "w": 24,
-        "x": 0,
-        "y": 31
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 13
       },
-      "id": 7,
+      "id": 5,
       "options": {
-        "query": "$active_trace_id"
+        "cellHeight": "sm",
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": false,
+            "displayName": "time"
+          }
+        ]
       },
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
-            "type": "tempo",
-            "uid": "tempo"
+            "type": "grafana-postgresql-datasource",
+            "uid": "timescaledb"
           },
-          "limit": 20,
-          "query": "$active_trace_id",
-          "queryType": "traceql",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  to_timestamp(timestamp_ns / 1e9) AS \"time\",\n  event_name,\n  metadata\nFROM entity_events\nWHERE entity_id = '$entity_id'\nORDER BY timestamp_ns ASC",
           "refId": "A"
         }
       ],
-      "title": "Span Tree",
-      "type": "traces"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 51
-      },
-      "id": 8,
-      "title": "Logs",
-      "type": "row"
+      "title": "Entity Events",
+      "type": "table"
     },
     {
       "datasource": {
@@ -391,38 +289,86 @@
       },
       "description": "Logs tagged with this entity's ID.",
       "gridPos": {
-        "h": 10,
+        "h": 13,
         "w": 24,
         "x": 0,
-        "y": 52
+        "y": 22
       },
       "id": 9,
       "options": {
         "dedupStrategy": "none",
+        "enableInfiniteScrolling": false,
         "enableLogDetails": true,
         "prettifyLogMessage": false,
         "showCommonLabels": false,
+        "showControls": false,
         "showLabels": false,
         "showTime": true,
         "sortOrder": "Descending",
-        "wrapLogMessage": false
+        "unwrappedColumns": false,
+        "wrapLogMessage": true
       },
+      "pluginVersion": "12.4.2",
       "targets": [
         {
           "datasource": {
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "{helix_instrument_id=~\".+\"} | json | otel_trace_id = `$active_trace_id` | line_format `{{.level | upper}} {{.msg}}  [{{.logger}}] {{.src}}`",
+          "direction": "backward",
+          "editorMode": "code",
+          "expr": "{helix_instrument_id=~\".+\"} | json | otel_trace_id = `$active_trace_id` | line_format `{{.level | upper}} {{.msg}}`",
           "queryType": "range",
           "refId": "A"
         }
       ],
       "title": "Logs",
       "type": "logs"
+    },
+    {
+      "datasource": {
+        "type": "tempo",
+        "uid": "tempo"
+      },
+      "description": "OTel trace for this entity's span.",
+      "gridPos": {
+        "h": 23,
+        "w": 24,
+        "x": 0,
+        "y": 35
+      },
+      "id": 7,
+      "options": {
+        "query": "$active_trace_id",
+        "spanFilters": {
+          "adhocFilters": [],
+          "criticalPathOnly": false,
+          "matchesOnly": false
+        }
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "tempo",
+            "uid": "tempo"
+          },
+          "limit": 20,
+          "metricsQueryType": "range",
+          "query": "$active_trace_id",
+          "queryType": "traceql",
+          "refId": "A",
+          "serviceMapUseNativeHistograms": false,
+          "tableType": "traces"
+        }
+      ],
+      "title": "Span Tree",
+      "type": "traces"
     }
   ],
-  "schemaVersion": 39,
+  "preload": false,
+  "refresh": "",
+  "schemaVersion": 42,
   "tags": [
     "helixobs",
     "entity"
@@ -431,12 +377,10 @@
     "list": [
       {
         "current": {
-          "selected": false,
           "text": "",
           "value": ""
         },
         "description": "Entity ID to inspect",
-        "hide": 0,
         "label": "Entity ID",
         "name": "entity_id",
         "options": [
@@ -447,22 +391,23 @@
           }
         ],
         "query": "",
-        "skipUrlSync": false,
         "type": "textbox"
       },
       {
+        "allowCustomValue": true,
         "current": {
-          "selected": false,
           "text": "",
           "value": ""
         },
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "timescaledb"
+        },
+        "definition": "SELECT trace_id FROM entities WHERE id = '$entity_id' AND trace_id IS NOT NULL LIMIT 1",
         "description": "Active trace \u2014 defaults to entity's own trace; click a row in All Traces to switch",
         "hide": 2,
         "label": "Active Trace",
         "name": "active_trace_id",
-        "query": "SELECT trace_id FROM entities WHERE id = '$entity_id' AND trace_id IS NOT NULL LIMIT 1",
-        "skipUrlSync": false,
-        "type": "query",
         "options": [
           {
             "selected": true,
@@ -470,13 +415,10 @@
             "value": ""
           }
         ],
-        "allowCustomValue": true,
-        "datasource": {
-          "type": "grafana-postgresql-datasource",
-          "uid": "timescaledb"
-        },
-        "definition": "SELECT trace_id FROM entities WHERE id = '$entity_id' AND trace_id IS NOT NULL LIMIT 1",
-        "refresh": 2
+        "query": "SELECT trace_id FROM entities WHERE id = '$entity_id' AND trace_id IS NOT NULL LIMIT 1",
+        "refresh": 2,
+        "regexApplyTo": "value",
+        "type": "query"
       }
     ]
   },
@@ -488,5 +430,5 @@
   "timezone": "browser",
   "title": "Entity Inspector",
   "uid": "helix-entity-inspector",
-  "version": 1
+  "weekStart": ""
 }

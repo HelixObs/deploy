@@ -42,6 +42,7 @@ services:
       - ../gateway/migrations/002_instrument_memory.sql:/docker-entrypoint-initdb.d/002_instrument_memory.sql:ro
       - ../gateway/migrations/003_trace_dedup.sql:/docker-entrypoint-initdb.d/003_trace_dedup.sql:ro
       - ../gateway/migrations/004_sherlock_usage.sql:/docker-entrypoint-initdb.d/004_sherlock_usage.sql:ro
+      - ../gateway/migrations/005_entity_events_trace_id.sql:/docker-entrypoint-initdb.d/005_entity_events_trace_id.sql:ro
     ports:
       - "5432:5432"
     healthcheck:

@@ -177,6 +177,48 @@
                 ]
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "error"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 70
+              },
+              {
+                "id": "color",
+                "value": { "mode": "thresholds" }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    { "color": "transparent", "value": null },
+                    { "color": "red", "value": 1 }
+                  ]
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": { "text": "", "index": 0 },
+                      "1": { "text": "error", "index": 1 }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": { "type": "color-background", "mode": "basic" }
+              }
+            ]
           }
         ]
       },
@@ -206,7 +248,7 @@
           },
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT\n  'creation'  AS \"operation\",\n  trace_id,\n  to_timestamp(timestamp_ns / 1e9) AS \"time\"\nFROM entities\nWHERE id = '$entity_id' AND trace_id IS NOT NULL\nUNION ALL\nSELECT\n  operation   AS \"operation\",\n  trace_id,\n  to_timestamp(timestamp_ns / 1e9) AS \"time\"\nFROM entity_operations\nWHERE entity_id = '$entity_id' AND trace_id IS NOT NULL\nORDER BY \"time\" ASC",
+          "rawSql": "SELECT\n  'creation' AS \"operation\",\n  e.trace_id,\n  to_timestamp(e.timestamp_ns / 1e9) AS \"time\",\n  CASE WHEN EXISTS (\n    SELECT 1 FROM entity_events ee\n    WHERE ee.entity_id = '$entity_id'\n      AND ee.event_name = 'helix.error'\n      AND ee.trace_id = e.trace_id\n  ) THEN 1 ELSE 0 END AS \"error\"\nFROM entities e\nWHERE e.id = '$entity_id' AND e.trace_id IS NOT NULL\nUNION ALL\nSELECT\n  eo.operation,\n  eo.trace_id,\n  to_timestamp(eo.timestamp_ns / 1e9) AS \"time\",\n  CASE WHEN EXISTS (\n    SELECT 1 FROM entity_events ee\n    WHERE ee.entity_id = '$entity_id'\n      AND ee.event_name = 'helix.error'\n      AND ee.trace_id = eo.trace_id\n  ) THEN 1 ELSE 0 END AS \"error\"\nFROM entity_operations eo\nWHERE eo.entity_id = '$entity_id' AND eo.trace_id IS NOT NULL\nORDER BY \"time\" ASC",
           "refId": "A"
         }
       ],

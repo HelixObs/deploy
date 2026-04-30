@@ -109,11 +109,11 @@ def unique_id(prefix: str = "e") -> str:
 
 def emit_entity(instrument, entity_id: str, parents: list[str] | None = None, events: list[dict] | None = None) -> str:
     """Emit a single entity span and flush. Returns entity_id."""
-    token = instrument.track("test-stage", id=entity_id, parents=parents or [])
+    token = instrument.create("test-stage", id=entity_id, parents=parents or []).start()
     if events:
         for ev in events:
             token.add_event(ev["name"], ev.get("attrs", {}))
-    instrument.complete(token)
+    token.complete()
     instrument._provider.force_flush(timeout_millis=5000)
     return entity_id
 

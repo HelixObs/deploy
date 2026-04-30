@@ -40,9 +40,9 @@ def _stream_diagnosis(sherlock_client, entity_id: str, instrument_id: str = "TES
 
 def test_T1_20_diagnosis_starts_and_streams(instrument, db_cursor, sherlock):
     eid = unique_id("cand")
-    token = instrument.track("test-stage", id=eid)
+    token = instrument.create("test-stage", id=eid).start()
     token.add_event("helix.error", {"type": "CLASSIFIER_TIMEOUT"})
-    instrument.complete(token)
+    token.complete()
     instrument._provider.force_flush(timeout_millis=5000)
     wait_for_entity(db_cursor, eid)
 
@@ -72,9 +72,9 @@ def test_T1_20_diagnosis_starts_and_streams(instrument, db_cursor, sherlock):
 
 def test_T1_21_hypothesis_saved_to_memory(instrument, db_cursor, sherlock):
     eid = unique_id("cand")
-    token = instrument.track("test-stage", id=eid)
+    token = instrument.create("test-stage", id=eid).start()
     token.add_event("helix.error", {"type": "RFI_BURST", "severity": "high"})
-    instrument.complete(token)
+    token.complete()
     instrument._provider.force_flush(timeout_millis=5000)
     wait_for_entity(db_cursor, eid)
 
@@ -116,9 +116,9 @@ def test_T1_21_hypothesis_saved_to_memory(instrument, db_cursor, sherlock):
 
 def test_T1_22_re_investigation_served_from_memory(instrument, db_cursor, sherlock):
     eid = unique_id("cand")
-    token = instrument.track("test-stage", id=eid)
+    token = instrument.create("test-stage", id=eid).start()
     token.add_event("helix.error", {"type": "CLASSIFIER_TIMEOUT"})
-    instrument.complete(token)
+    token.complete()
     instrument._provider.force_flush(timeout_millis=5000)
     wait_for_entity(db_cursor, eid)
 
@@ -147,9 +147,9 @@ def test_T1_22_re_investigation_served_from_memory(instrument, db_cursor, sherlo
 
 def test_T1_23_operator_reply_continues_investigation(instrument, db_cursor, sherlock):
     eid = unique_id("cand")
-    token = instrument.track("test-stage", id=eid)
+    token = instrument.create("test-stage", id=eid).start()
     token.add_event("helix.error", {"type": "GPU_HANG"})
-    instrument.complete(token)
+    token.complete()
     instrument._provider.force_flush(timeout_millis=5000)
     wait_for_entity(db_cursor, eid)
 
@@ -206,9 +206,9 @@ def test_T1_23_operator_reply_continues_investigation(instrument, db_cursor, she
 def test_T1_24_memory_crud(instrument, db_cursor, sherlock):
     # Seed at least one memory entry by running an investigation
     eid = unique_id("cand")
-    token = instrument.track("test-stage", id=eid)
+    token = instrument.create("test-stage", id=eid).start()
     token.add_event("helix.error", {"type": "CLASSIFIER_TIMEOUT"})
-    instrument.complete(token)
+    token.complete()
     instrument._provider.force_flush(timeout_millis=5000)
     wait_for_entity(db_cursor, eid)
 

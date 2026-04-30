@@ -123,9 +123,9 @@ def test_T1_05_gateway_transparency_non_helix_spans(instrument, db_cursor):
 
 def test_T1_06_helix_error_event_extraction(instrument, db_cursor):
     eid = unique_id("cand")
-    token = instrument.track("test-stage", id=eid)
+    token = instrument.create("test-stage", id=eid).start()
     token.add_event("helix.error", {"type": "CLASSIFIER_TIMEOUT", "rack": "gpu-rack-3"})
-    instrument.complete(token)
+    token.complete()
     instrument._provider.force_flush(timeout_millis=5000)
 
     events = wait_for_events(db_cursor, eid, count=1)
@@ -142,10 +142,10 @@ def test_T1_06_helix_error_event_extraction(instrument, db_cursor):
 
 def test_T1_07_helix_event_extraction(instrument, db_cursor):
     eid = unique_id("cand")
-    token = instrument.track("test-stage", id=eid)
+    token = instrument.create("test-stage", id=eid).start()
     token.add_event("helix.event.rfi_flagged", {"fraction_flagged": "0.92", "algorithm": "spectral_kurtosis"})
     token.add_event("helix.event.candidate_promoted", {"snr": "23.4", "confidence": "0.97"})
-    instrument.complete(token)
+    token.complete()
     instrument._provider.force_flush(timeout_millis=5000)
 
     events = wait_for_events(db_cursor, eid, count=2)
@@ -161,9 +161,9 @@ def test_T1_07_helix_event_extraction(instrument, db_cursor):
 
 def test_T1_08_non_helix_events_ignored(instrument, db_cursor):
     eid = unique_id("cand")
-    token = instrument.track("test-stage", id=eid)
+    token = instrument.create("test-stage", id=eid).start()
     token._span.add_event("exception", {"exception.message": "test error"})
-    instrument.complete(token)
+    token.complete()
     instrument._provider.force_flush(timeout_millis=5000)
     time.sleep(1)
 
@@ -178,7 +178,7 @@ def test_T1_09_event_timestamp_correctness(instrument, db_cursor):
     from opentelemetry import trace as otel_trace
 
     eid = unique_id("cand")
-    token = instrument.track("test-stage", id=eid)
+    token = instrument.create("test-stage", id=eid).start()
     span_start_ns = token._span.start_time
 
     # Sleep 2 seconds then add the event
@@ -187,7 +187,7 @@ def test_T1_09_event_timestamp_correctness(instrument, db_cursor):
     token.add_event("helix.error", {"msg": "timestamp-test"})
     _time.sleep(0.5)
     span_end_approx = _time.time_ns()
-    instrument.complete(token)
+    token.complete()
     instrument._provider.force_flush(timeout_millis=5000)
 
     events = wait_for_events(db_cursor, eid, count=1)
@@ -212,8 +212,8 @@ def test_T1_10_out_of_order_parent_arrives_later(instrument, db_cursor):
     from helixobs._store import TraceStore
     instrument._store = TraceStore()
 
-    token = instrument.track("test-stage", id=cand_id, parents=[block_id])
-    instrument.complete(token)
+    token = instrument.create("test-stage", id=cand_id, parents=[block_id]).start()
+    token.complete()
     instrument._provider.force_flush(timeout_millis=5000)
 
     # Now emit the parent
@@ -233,8 +233,8 @@ def test_T1_11_out_of_order_parent_never_arrives(instrument, db_cursor, promethe
     resp = prometheus.get("/api/v1/query", params={"query": 'helix_parent_resolution_failed_total{instrument_id="TEST"}'})
     before = float(resp.json()["data"]["result"][0]["value"][1]) if resp.json()["data"]["result"] else 0.0
 
-    token = instrument.track("test-stage", id=cand_id, parents=[missing_parent])
-    instrument.complete(token)
+    token = instrument.create("test-stage", id=cand_id, parents=[missing_parent]).start()
+    token.complete()
     instrument._provider.force_flush(timeout_millis=5000)
 
     # Entity should still land in DB even without parent resolution
@@ -304,10 +304,10 @@ def test_T1_14_prometheus_error_and_event_counters(instrument):
     errors_before = get_counter(resp.text, "helix_errors_total", {"instrument_id": "TEST"})
 
     eid = unique_id("cand")
-    token = instrument.track("test-stage", id=eid)
+    token = instrument.create("test-stage", id=eid).start()
     token.add_event("helix.error", {"msg": "test"})
     token.add_event("helix.event.rfi_flagged", {"fraction": "0.5"})
-    instrument.complete(token)
+    token.complete()
     instrument._provider.force_flush(timeout_millis=5000)
     time.sleep(1)
 
@@ -320,14 +320,14 @@ def test_T1_14_prometheus_error_and_event_counters(instrument):
 
 def test_T1_15_entity_timeline_query(instrument, db_cursor):
     eid = unique_id("cand")
-    token = instrument.track("test-stage", id=eid)
+    token = instrument.create("test-stage", id=eid).start()
     time.sleep(0.05)
     token.add_event("helix.event.rfi_flagged", {"step": "1"})
     time.sleep(0.05)
     token.add_event("helix.event.rfi_cleared", {"step": "2"})
     time.sleep(0.05)
     token.add_event("helix.event.candidate_promoted", {"step": "3"})
-    instrument.complete(token)
+    token.complete()
     instrument._provider.force_flush(timeout_millis=5000)
 
     events = wait_for_events(db_cursor, eid, count=3)

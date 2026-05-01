@@ -190,15 +190,23 @@
               },
               {
                 "id": "color",
-                "value": { "mode": "thresholds" }
+                "value": {
+                  "mode": "thresholds"
+                }
               },
               {
                 "id": "thresholds",
                 "value": {
                   "mode": "absolute",
                   "steps": [
-                    { "color": "transparent", "value": null },
-                    { "color": "red", "value": 1 }
+                    {
+                      "color": "transparent",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
                   ]
                 }
               },
@@ -208,15 +216,24 @@
                   {
                     "type": "value",
                     "options": {
-                      "0": { "text": "", "index": 0 },
-                      "1": { "text": "error", "index": 1 }
+                      "0": {
+                        "text": "",
+                        "index": 0
+                      },
+                      "1": {
+                        "text": "error",
+                        "index": 1
+                      }
                     }
                   }
                 ]
               },
               {
                 "id": "custom.cellOptions",
-                "value": { "type": "color-background", "mode": "basic" }
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
               }
             ]
           }

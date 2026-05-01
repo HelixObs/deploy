@@ -43,6 +43,7 @@ services:
       - ../gateway/migrations/003_trace_dedup.sql:/docker-entrypoint-initdb.d/003_trace_dedup.sql:ro
       - ../gateway/migrations/004_sherlock_usage.sql:/docker-entrypoint-initdb.d/004_sherlock_usage.sql:ro
       - ../gateway/migrations/005_entity_events_trace_id.sql:/docker-entrypoint-initdb.d/005_entity_events_trace_id.sql:ro
+      - ../gateway/migrations/006_operation_duration.sql:/docker-entrypoint-initdb.d/006_operation_duration.sql:ro
     ports:
       - "5432:5432"
     healthcheck:
@@ -181,6 +182,7 @@ services:
       ANTHROPIC_API_KEY:        "${ANTHROPIC_API_KEY}"
       GATEWAY_DB_URL:           "postgres://helix:helix@db:5432/helixobs"
       GITHUB_TOKEN:             "${GITHUB_TOKEN:-}"
+      GRAFANA_URL:              "http://localhost:3001"
     ports:
       - "8082:8082"
       - "9102:9102"   # Prometheus metrics
@@ -193,6 +195,7 @@ services:
     environment:
       GATEWAY_URL:  "http://gateway:8080"
       SHERLOCK_URL: "http://sherlock:8082"
+      GRAFANA_URL:  "http://localhost:3001"
     ports:
       - "8081:3000"
     depends_on:

@@ -18,6 +18,7 @@ jobs:
         with:
           repository: HelixObs/client-python
           path: client-python
+          token: ${{ secrets.GH_PAT }}
 
       - name: Start Docker Compose stack
         run: docker compose up -d --build

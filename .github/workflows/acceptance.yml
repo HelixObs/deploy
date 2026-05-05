@@ -9,40 +9,45 @@ jobs:
   acceptance:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: repos/deploy   # mirrors local layout so context: ../X resolves
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out deploy
+        uses: actions/checkout@v4
+        with:
+          path: repos/deploy
 
-      # Check out all sibling repos so docker-compose build contexts (context: ../X) resolve correctly.
       - name: Check out gateway
         uses: actions/checkout@v4
         with:
           repository: HelixObs/gateway
-          path: ../gateway
+          path: repos/gateway
 
       - name: Check out ui
         uses: actions/checkout@v4
         with:
           repository: HelixObs/ui
-          path: ../ui
+          path: repos/ui
 
       - name: Check out sherlock
         uses: actions/checkout@v4
         with:
           repository: HelixObs/sherlock
-          path: ../sherlock
+          path: repos/sherlock
 
       - name: Check out mock-telescope
         uses: actions/checkout@v4
         with:
           repository: HelixObs/mock-telescope
-          path: ../mock-telescope
+          path: repos/mock-telescope
 
       - name: Check out client-python
         uses: actions/checkout@v4
         with:
           repository: HelixObs/client-python
-          path: ../client-python
+          path: repos/client-python
 
       - name: Start Docker Compose stack
         run: docker compose up -d --build
@@ -75,7 +80,7 @@ jobs:
           pip install -r tests/acceptance/requirements.txt
 
       - name: Run acceptance tests (non-Sherlock)
-        working-directory: tests/acceptance
+        working-directory: repos/deploy/tests/acceptance
         run: pytest -v -m "not sherlock and not destructive" --tb=short
         env:
           DB_URL:         postgres://helix:helix@localhost:5432/helixobs

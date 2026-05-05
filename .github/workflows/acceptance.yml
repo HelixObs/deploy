@@ -13,11 +13,36 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Check out all sibling repos so docker-compose build contexts (context: ../X) resolve correctly.
+      - name: Check out gateway
+        uses: actions/checkout@v4
+        with:
+          repository: HelixObs/gateway
+          path: ../gateway
+
+      - name: Check out ui
+        uses: actions/checkout@v4
+        with:
+          repository: HelixObs/ui
+          path: ../ui
+
+      - name: Check out sherlock
+        uses: actions/checkout@v4
+        with:
+          repository: HelixObs/sherlock
+          path: ../sherlock
+
+      - name: Check out mock-telescope
+        uses: actions/checkout@v4
+        with:
+          repository: HelixObs/mock-telescope
+          path: ../mock-telescope
+
       - name: Check out client-python
         uses: actions/checkout@v4
         with:
           repository: HelixObs/client-python
-          path: client-python
+          path: ../client-python
 
       - name: Start Docker Compose stack
         run: docker compose up -d --build
@@ -46,7 +71,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -e "client-python[dev]"
+          pip install -e "../client-python[dev]"
           pip install -r tests/acceptance/requirements.txt
 
       - name: Run acceptance tests (non-Sherlock)

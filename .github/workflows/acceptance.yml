@@ -66,8 +66,8 @@ jobs:
             echo "  attempt $i/24..."
             sleep 5
           done
-          # Extra settle time for Prometheus scrape targets
-          sleep 15
+          # Extra settle time for Prometheus scrape targets and Alloy log shipping
+          sleep 45
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -86,6 +86,7 @@ jobs:
           DB_URL:         postgres://helix:helix@localhost:5432/helixobs
           GATEWAY_URL:    http://localhost:8080
           SHERLOCK_URL:   http://localhost:8082
+          LOKI_URL:       http://localhost:3101
           TEMPO_URL:      http://localhost:3201
           PROMETHEUS_URL: http://localhost:9091
           OTLP_ENDPOINT:  localhost:4317

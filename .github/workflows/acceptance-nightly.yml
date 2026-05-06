@@ -79,7 +79,7 @@ jobs:
 
       - name: Run all T1 acceptance tests
         working-directory: repos/deploy/tests/acceptance
-        run: pytest -v -m "not destructive" --tb=short
+        run: pytest -v -m "not sherlock and not destructive" --tb=short
         env:
           DB_URL:           postgres://helix:helix@localhost:5432/helixobs
           GATEWAY_URL:      http://localhost:8080

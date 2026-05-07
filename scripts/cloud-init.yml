@@ -1,0 +1,47 @@
+#cloud-config
+# HelixObs VM bootstrap — paste into OpenStack "Customization Script" when launching.
+# Also check the "Configuration Drive" checkbox on the same page.
+#
+# After boot (~3 min), SSH in and:
+#   1. Edit /opt/helixobs/deploy/.env  — set ANTHROPIC_API_KEY
+#   2. newgrp docker  (or log out/in)
+#   3. cd /opt/helixobs/deploy && docker compose --env-file .env up -d --build
+
+packages:
+  - git
+  - curl
+
+runcmd:
+  # Format and mount the data volume (attached as /dev/vdb)
+  - mkfs.ext4 /dev/vdb
+  - mkdir -p /data/docker
+  - mount /dev/vdb /data
+  - echo '/dev/vdb /data ext4 defaults 0 2' >> /etc/fstab
+
+  # Configure Docker to use the data volume
+  - mkdir -p /etc/docker
+  - echo '{"data-root":"/data/docker"}' > /etc/docker/daemon.json
+
+  # Install Docker
+  - curl -fsSL https://get.docker.com | sh
+  - usermod -aG docker ubuntu
+
+  # Clone all repos into /opt/helixobs (mirrors local layout for docker-compose context: ../X)
+  - mkdir -p /opt/helixobs
+  - git clone https://github.com/HelixObs/deploy         /opt/helixobs/deploy
+  - git clone https://github.com/HelixObs/gateway        /opt/helixobs/gateway
+  - git clone https://github.com/HelixObs/ui             /opt/helixobs/ui
+  - git clone https://github.com/HelixObs/sherlock       /opt/helixobs/sherlock
+  - git clone https://github.com/HelixObs/mock-telescope /opt/helixobs/mock-telescope
+  - git clone https://github.com/HelixObs/client-python  /opt/helixobs/client-python
+  - chown -R ubuntu:ubuntu /opt/helixobs
+
+  # Create .env template
+  - |
+    cat > /opt/helixobs/deploy/.env <<'ENV'
+    ANTHROPIC_API_KEY=
+    GITHUB_TOKEN=
+    GRAFANA_URL=http://206.12.91.148:3001
+    GATEWAY_URL=http://206.12.91.148:8080
+    SHERLOCK_URL=http://206.12.91.148:8082
+    ENV

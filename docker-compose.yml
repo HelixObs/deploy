@@ -81,6 +81,7 @@ services:
   # ── OTel Collector ────────────────────────────────────────────────────────────
   otel-collector:
     image: otel/opentelemetry-collector-contrib:latest
+    restart: unless-stopped
     command: ["--config=/etc/otel/config.yml"]
     volumes:
       - ./otel-collector-config.yml:/etc/otel/config.yml:ro
@@ -106,6 +107,7 @@ services:
   loki:
     image: grafana/loki:latest
     mem_limit: 256m
+    restart: unless-stopped
     command: ["-config.file=/etc/loki/config.yml"]
     volumes:
       - ./loki-config.yml:/etc/loki/config.yml:ro
@@ -118,6 +120,7 @@ services:
   node-exporter:
     image: prom/node-exporter:latest
     mem_limit: 64m
+    restart: unless-stopped
     command:
       - "--collector.disable-defaults"
       - "--collector.cpu"
@@ -132,6 +135,7 @@ services:
   prometheus:
     image: prom/prometheus:latest
     mem_limit: 128m
+    restart: unless-stopped
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"
@@ -180,6 +184,7 @@ services:
   sherlock:
     build:
       context: ../sherlock
+    restart: unless-stopped
     environment:
       SHERLOCK_INSTRUMENTS_DIR: "/app/instruments"
       ANTHROPIC_API_KEY:        "${ANTHROPIC_API_KEY}"
@@ -195,6 +200,7 @@ services:
   ui:
     build:
       context: ../ui
+    restart: unless-stopped
     environment:
       GATEWAY_URL:  "http://gateway:8080"
       SHERLOCK_URL: "http://sherlock:8082"
@@ -213,6 +219,7 @@ services:
     build:
       context: ../          # HelixObs root — lets Dockerfile reach client-python/
       dockerfile: mock-telescope/Dockerfile
+    restart: unless-stopped
     environment:
       GATEWAY_ENDPOINT:            "gateway:4317"
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"

@@ -146,7 +146,8 @@ services:
   # ── Grafana ───────────────────────────────────────────────────────────────────
   grafana:
     image: grafana/grafana:latest
-    mem_limit: 512m
+    mem_limit: 1g
+    restart: unless-stopped
     environment:
       GF_SECURITY_ADMIN_PASSWORD: admin
       GF_AUTH_ANONYMOUS_ENABLED:  "false"

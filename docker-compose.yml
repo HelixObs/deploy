@@ -191,7 +191,7 @@ services:
       ANTHROPIC_API_KEY:        "${ANTHROPIC_API_KEY}"
       GATEWAY_DB_URL:           "postgres://helix:helix@db:5432/helixobs"
       GITHUB_TOKEN:             "${GITHUB_TOKEN:-}"
-      GRAFANA_URL:              "http://localhost:3001"
+      GRAFANA_URL:              "${PUBLIC_URL:-http://localhost}:3001"
     ports:
       - "8082:8082"
       - "9102:9102"   # Prometheus metrics
@@ -205,7 +205,7 @@ services:
     environment:
       GATEWAY_URL:  "http://gateway:8080"
       SHERLOCK_URL: "http://sherlock:8082"
-      GRAFANA_URL:  "http://localhost:3001"
+      GRAFANA_URL:  "${PUBLIC_URL:-http://localhost}:3001"
     ports:
       - "8081:3000"
     depends_on:

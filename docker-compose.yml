@@ -241,22 +241,3 @@ services:
         condition: service_started
     networks: [helix]
 
-  # ── CHIME mock telescope ──────────────────────────────────────────────────────
-  mock-telescope:
-    build:
-      context: ../          # HelixObs root — lets Dockerfile reach client-python/
-      dockerfile: mock-telescope/Dockerfile
-    restart: unless-stopped
-    environment:
-      GATEWAY_ENDPOINT:            "gateway:4317"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
-      BLOCK_INTERVAL_S:            "3"
-      GITHUB_REPO:                 "https://github.com/HelixObs/mock-telescope"
-      L1_REPLAY_FILE:              "/data/l1_headers.json"
-      REPLAY_SPEED:                "2"
-    volumes:
-      - ../l1_headers.json:/data/l1_headers.json:ro
-    depends_on:
-      gateway:
-        condition: service_healthy
-    networks: [helix]

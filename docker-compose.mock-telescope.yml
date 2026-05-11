@@ -1,0 +1,31 @@
+name: helixobs
+
+# Bring up the mock telescope against a running HelixObs stack:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.mock-telescope.yml up -d mock-telescope
+#
+# Or standalone (stack must already be up):
+#
+#   docker compose -f docker-compose.mock-telescope.yml up -d --build
+
+networks:
+  helix:
+    external: true
+    name: helixobs_helix
+
+services:
+  mock-telescope:
+    build:
+      context: ../          # HelixObs root — lets Dockerfile reach client-python/
+      dockerfile: mock-telescope/Dockerfile
+    restart: unless-stopped
+    environment:
+      GATEWAY_ENDPOINT:            "gateway:4317"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
+      BLOCK_INTERVAL_S:            "3"
+      GITHUB_REPO:                 "https://github.com/HelixObs/mock-telescope"
+      L1_REPLAY_FILE:              "/data/l1_headers.json"
+      REPLAY_SPEED:                "2"
+    volumes:
+      - ../l1_headers.json:/data/l1_headers.json:ro
+    networks: [helix]

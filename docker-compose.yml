@@ -12,10 +12,35 @@ name: helixobs
 
 volumes:
   db-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /data/db
   prometheus-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /data/prometheus
   loki-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /data/loki
   tempo-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /data/tempo
   grafana-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /data/grafana
 
 networks:
   helix:

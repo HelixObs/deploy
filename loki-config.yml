@@ -36,7 +36,7 @@ limits_config:
     resource_attributes:
       attributes_config:
         - action: index_label
-          attributes: [service.name]
+          attributes: [service.name, helix.process.name]
         - action: structured_metadata
           regex: ".*"
     log_attributes:

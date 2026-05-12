@@ -346,11 +346,54 @@
         "type": "loki",
         "uid": "loki"
       },
-      "description": "Logs tagged with this entity's ID.",
+      "description": "Logs for the selected trace. Click a trace_id row in the Trace table to switch.",
       "gridPos": {
         "h": 13,
-        "w": 24,
+        "w": 12,
         "x": 0,
+        "y": 22
+      },
+      "id": 11,
+      "options": {
+        "dedupStrategy": "none",
+        "enableInfiniteScrolling": false,
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showControls": false,
+        "showLabels": false,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "unwrappedColumns": false,
+        "wrapLogMessage": true
+      },
+      "pluginVersion": "12.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "direction": "backward",
+          "editorMode": "code",
+          "expr": "{helix_instrument_id=~\".+\"} | trace_id = `$active_trace_id`",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Trace Logs",
+      "type": "logs"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "description": "All logs tagged with this entity's ID across all traces.",
+      "gridPos": {
+        "h": 13,
+        "w": 12,
+        "x": 12,
         "y": 22
       },
       "id": 9,
@@ -381,7 +424,7 @@
           "refId": "A"
         }
       ],
-      "title": "Logs",
+      "title": "Entity Logs",
       "type": "logs"
     },
     {

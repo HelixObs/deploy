@@ -130,7 +130,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum(rate({helix_process_name=\"$process_name\"}[$__rate_interval]))",
+          "expr": "sum(rate({helix_process_name=\"$process_name\"}[2m]))",
           "queryType": "range",
           "refId": "A"
         }
@@ -189,7 +189,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum(rate({helix_process_name=\"$process_name\", level=\"error\"}[$__rate_interval]))",
+          "expr": "sum(rate({helix_process_name=\"$process_name\", level=\"error\"}[2m]))",
           "queryType": "range",
           "refId": "A"
         }

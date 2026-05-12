@@ -341,7 +341,7 @@
           },
           "direction": "backward",
           "editorMode": "code",
-          "expr": "{helix_process_name=\"\", level=~\"\"}",
+          "expr": "{helix_process_name=\"$process_name\", level=~\"$level\"}",
           "queryType": "range",
           "refId": "A"
         }

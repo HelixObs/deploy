@@ -16,7 +16,8 @@ datasources:
     jsonData:
       derivedFields:
         - name: TraceID
-          matcherRegex: '"otelTraceID"\s*:\s*"(\w+)"'
+          matcherType: label
+          matcherField: trace_id
           url: "$${__value.raw}"
           datasourceUid: tempo
         - name: Source
@@ -34,7 +35,7 @@ datasources:
         datasourceUid: loki
         filterByTraceID: false
         customQuery: true
-        query: '{helix_instrument_id=~".+"} | json | otel_trace_id = "${__trace.traceId}" | line_format `{{.level | upper}} {{.msg}}  [{{.logger}}] {{.src}}`'
+        query: '{helix_instrument_id=~".+"} | trace_id = "${__trace.traceId}"'
       serviceMap:
         datasourceUid: prometheus
       nodeGraph:

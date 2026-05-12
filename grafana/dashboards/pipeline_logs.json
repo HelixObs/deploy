@@ -35,11 +35,11 @@
         "name": "level",
         "label": "Level",
         "type": "custom",
-        "query": ".*,info,warning,error,debug",
+        "query": ".+,info,warning,error,debug",
         "options": [
           {
             "text": "All",
-            "value": ".*",
+            "value": ".+",
             "selected": true
           },
           {
@@ -65,7 +65,7 @@
         ],
         "current": {
           "text": "All",
-          "value": ".*"
+          "value": ".+"
         },
         "multi": false,
         "includeAll": false

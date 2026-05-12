@@ -35,7 +35,7 @@ datasources:
         datasourceUid: loki
         filterByTraceID: false
         customQuery: true
-        query: '{helix_instrument_id=~".+"} | trace_id = "${__trace.traceId}"'
+        query: '{helix_instrument_id=~".+"} | trace_id = "$${__trace.traceId}"'
       serviceMap:
         datasourceUid: prometheus
       nodeGraph:

@@ -28,6 +28,7 @@ limits_config:
   ingestion_rate_mb: 32
   ingestion_burst_size_mb: 64
   reject_old_samples: false
+  retention_period: 2160h
   # OTLP log ingestion: restrict which attributes become stream labels.
   # Mirrors the Alloy pipeline which promotes only helix_instrument_id and level.
   # helix_entity_id is intentionally excluded — one stream per entity exhausts
@@ -44,6 +45,10 @@ limits_config:
         attributes: [helix_instrument_id, level, trace_id]
       - action: structured_metadata
         regex: ".*"
+
+compactor:
+  working_directory: /loki/compactor
+  retention_enabled: true
 
 schema_config:
   configs:

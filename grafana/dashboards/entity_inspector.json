@@ -287,7 +287,8 @@
         }
       ],
       "title": "Trace Logs",
-      "type": "logs"
+      "type": "logs",
+      "timeFrom": "90d"
     },
     {
       "datasource": {
@@ -330,7 +331,8 @@
         }
       ],
       "title": "Entity Logs",
-      "type": "logs"
+      "type": "logs",
+      "timeFrom": "90d"
     },
     {
       "datasource": {

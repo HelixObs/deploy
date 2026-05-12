@@ -24,7 +24,11 @@
           "type": "loki",
           "uid": "loki"
         },
-        "query": "label_values(helix_process_name)",
+        "query": {
+          "label": "helix_process_name",
+          "stream": "{}",
+          "type": "labelValues"
+        },
         "refresh": 2,
         "sort": 1,
         "multi": false,

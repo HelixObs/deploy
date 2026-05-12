@@ -59,7 +59,7 @@ services:
       POSTGRES_INITDB_ARGS: ""
       # Keep Postgres from grabbing all available RAM
       PGDATA: /var/lib/postgresql/data/pgdata
-    command: postgres -c shared_buffers=128MB -c work_mem=4MB -c max_connections=50
+    command: postgres -c shared_buffers=128MB -c work_mem=4MB -c max_connections=200
     volumes:
       - db-data:/var/lib/postgresql/data
       # Migrations run automatically on first container start.

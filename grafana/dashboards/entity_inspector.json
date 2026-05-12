@@ -263,6 +263,7 @@
         "dedupStrategy": "none",
         "enableInfiniteScrolling": false,
         "enableLogDetails": true,
+        "liveNow": false,
         "prettifyLogMessage": false,
         "showCommonLabels": false,
         "showControls": true,
@@ -307,6 +308,7 @@
         "dedupStrategy": "none",
         "enableInfiniteScrolling": false,
         "enableLogDetails": true,
+        "liveNow": false,
         "prettifyLogMessage": false,
         "showCommonLabels": false,
         "showControls": true,
@@ -471,7 +473,7 @@
     }
   ],
   "preload": false,
-  "refresh": "",
+  "refresh": "30s",
   "schemaVersion": 42,
   "tags": [
     "helixobs",

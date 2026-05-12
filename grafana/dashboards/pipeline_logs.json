@@ -297,7 +297,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum by (level) (rate({helix_process_name=\"$process_name\"}[$__rate_interval]))",
+          "expr": "sum by (level) (rate({helix_process_name=\"$process_name\"}[2m]))",
           "queryType": "range",
           "legendFormat": "{{level}}",
           "refId": "A"

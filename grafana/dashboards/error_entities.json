@@ -156,6 +156,68 @@
       ],
       "title": "Error Rate",
       "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "timescaledb" },
+      "description": "Error messages grouped by content and stage, sorted by frequency. Useful for identifying recurring error classes.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": { "type": "auto" },
+            "filterable": true,
+            "inspect": false
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "occurrences" },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": { "type": "color-background", "mode": "basic" }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    { "color": "yellow", "value": null },
+                    { "color": "orange", "value": 10 },
+                    { "color": "red", "value": 50 }
+                  ]
+                }
+              },
+              { "id": "custom.width", "value": 100 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "error_message" },
+            "properties": [
+              { "id": "custom.width", "value": 500 }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 26 },
+      "id": 3,
+      "options": {
+        "cellHeight": "sm",
+        "footer": { "show": false },
+        "showHeader": true,
+        "sortBy": [{ "desc": true, "displayName": "occurrences" }]
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-postgresql-datasource", "uid": "timescaledb" },
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  ee.metadata->>'message'                               AS error_message,\n  ee.metadata->>'stage'                                 AS stage,\n  e.instrument_id,\n  COUNT(*)                                              AS occurrences,\n  MAX(to_timestamp(ee.timestamp_ns / 1e9))              AS last_seen\nFROM entity_events ee\nJOIN entities e ON e.id = ee.entity_id\nWHERE ee.event_name = 'helix.error'\n  AND $__timeFilter(ee.created_at)\n  AND ('${instrument_id}' = 'All' OR e.instrument_id = '${instrument_id}')\nGROUP BY ee.metadata->>'message', ee.metadata->>'stage', e.instrument_id\nORDER BY occurrences DESC\nLIMIT 100",
+          "refId": "A"
+        }
+      ],
+      "title": "Error Message Breakdown",
+      "type": "table"
     }
   ],
   "schemaVersion": 39,
@@ -178,7 +240,7 @@
       }
     ]
   },
-  "time": { "from": "now-1h", "to": "now" },
+  "time": { "from": "now-2d", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
   "title": "Error Entities",

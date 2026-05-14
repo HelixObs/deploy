@@ -4,6 +4,13 @@ receivers:
       grpc:
         endpoint: 0.0.0.0:4317
 
+processors:
+  transform/lowercase_level:
+    log_statements:
+      - context: log
+        statements:
+          - set(attributes["level"], ConvertCase(attributes["level"], "lower")) where attributes["level"] != nil
+
 exporters:
   otlp_http:
     endpoint: http://tempo:4318
@@ -34,4 +41,5 @@ service:
       exporters: [otlp_http, debug]
     logs:
       receivers: [otlp]
+      processors: [transform/lowercase_level]
       exporters: [otlp_http/loki]

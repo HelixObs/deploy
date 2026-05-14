@@ -39,7 +39,7 @@
         "name": "level",
         "label": "Level",
         "type": "custom",
-        "query": ".+,info,warning,error,debug",
+        "query": ".+,(?i)info,(?i)warning,(?i)error,(?i)debug",
         "options": [
           {
             "text": "All",
@@ -48,22 +48,22 @@
           },
           {
             "text": "info",
-            "value": "info",
+            "value": "(?i)info",
             "selected": false
           },
           {
             "text": "warning",
-            "value": "warning",
+            "value": "(?i)warning",
             "selected": false
           },
           {
             "text": "error",
-            "value": "error",
+            "value": "(?i)error",
             "selected": false
           },
           {
             "text": "debug",
-            "value": "debug",
+            "value": "(?i)debug",
             "selected": false
           }
         ],
@@ -193,7 +193,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum(rate({helix_process_name=\"$process_name\", level=\"error\"}[2m]))",
+          "expr": "sum(rate({helix_process_name=\"$process_name\", level=~\"(?i)error\"}[2m]))",
           "queryType": "range",
           "refId": "A"
         }

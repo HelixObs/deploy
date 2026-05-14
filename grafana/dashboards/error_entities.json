@@ -212,7 +212,7 @@
           "datasource": { "type": "grafana-postgresql-datasource", "uid": "timescaledb" },
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT\n  ee.metadata->>'message'                               AS error_message,\n  ee.metadata->>'stage'                                 AS stage,\n  e.instrument_id,\n  COUNT(*)                                              AS occurrences,\n  MAX(to_timestamp(ee.timestamp_ns / 1e9))              AS last_seen\nFROM entity_events ee\nJOIN entities e ON e.id = ee.entity_id\nWHERE ee.event_name = 'helix.error'\n  AND $__timeFilter(ee.created_at)\n  AND ('${instrument_id}' = 'All' OR e.instrument_id = '${instrument_id}')\nGROUP BY ee.metadata->>'message', ee.metadata->>'stage', e.instrument_id\nORDER BY occurrences DESC\nLIMIT 100",
+          "rawSql": "SELECT\n  ee.metadata->>'message'                               AS error_message,\n  ee.metadata->>'stage'                                 AS stage,\n  e.instrument_id,\n  COUNT(*)                                              AS occurrences,\n  MAX(to_timestamp(ee.timestamp_ns / 1e9))              AS last_seen\nFROM entity_events ee\nJOIN entities e ON e.id = ee.entity_id\nWHERE ee.event_name = 'helix.error'\n  AND $__timeFilter(ee.created_at)\n  AND e.instrument_id ILIKE CASE WHEN '${instrument_id}' IN ('All', '$__all') THEN '%' ELSE '${instrument_id}' END\nGROUP BY ee.metadata->>'message', ee.metadata->>'stage', e.instrument_id\nORDER BY occurrences DESC\nLIMIT 100",
           "refId": "A"
         }
       ],

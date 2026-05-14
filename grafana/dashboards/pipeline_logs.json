@@ -327,7 +327,9 @@
       "options": {
         "dedupStrategy": "none",
         "enableLogDetails": true,
+        "liveNow": false,
         "prettifyLogMessage": false,
+        "showControls": true,
         "showLabels": false,
         "showTime": true,
         "sortOrder": "Descending",

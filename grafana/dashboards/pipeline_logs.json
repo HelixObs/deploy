@@ -193,7 +193,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum(rate({helix_process_name=\"$process_name\", level=~\"error|ERROR\"}[2m]))",
+          "expr": "sum(rate({helix_process_name=\"$process_name\"} | level=~\"error|ERROR\" or detected_level=~\"error|ERROR\" [2m]))",
           "queryType": "range",
           "refId": "A"
         }
@@ -343,7 +343,7 @@
           },
           "direction": "backward",
           "editorMode": "code",
-          "expr": "{helix_process_name=\"$process_name\", level=~\"$level\"}",
+          "expr": "{helix_process_name=\"$process_name\"} | level=~\"$level\" or detected_level=~\"$level\"",
           "queryType": "range",
           "refId": "A"
         }

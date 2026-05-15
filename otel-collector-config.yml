@@ -9,7 +9,7 @@ processors:
     log_statements:
       - context: log
         statements:
-          - set(attributes["level"], ConvertCase(attributes["level"], "lower")) where attributes["level"] != nil
+          - set(attributes["level"], ConvertCase(severity_text, "lower")) where severity_text != nil
 
 exporters:
   otlp_http:

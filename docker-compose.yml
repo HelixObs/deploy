@@ -70,6 +70,7 @@ services:
       - ../gateway/migrations/005_entity_events_trace_id.sql:/docker-entrypoint-initdb.d/005_entity_events_trace_id.sql:ro
       - ../gateway/migrations/006_operation_duration.sql:/docker-entrypoint-initdb.d/006_operation_duration.sql:ro
       - ../gateway/migrations/007_entity_events_error_index.sql:/docker-entrypoint-initdb.d/007_entity_events_error_index.sql:ro
+      - ../gateway/migrations/008_notifications.sql:/docker-entrypoint-initdb.d/008_notifications.sql:ro
     ports:
       - "5432:5432"
     healthcheck:
@@ -90,6 +91,14 @@ services:
       DB_URL:              "postgres://helix:helix@db:5432/helixobs"
       METRICS_ADDR:        ":2112"
       API_ADDR:            ":8080"
+      INSTRUMENTS_DIR:     "/instruments"
+      UI_BASE_URL:         "${PUBLIC_URL:-http://localhost}:8081"
+      GRAFANA_URL:         "${PUBLIC_URL:-http://localhost}:3001"
+      # Instrument secrets — values come from .env or shell environment, never committed
+      CHIMEFRB_SLACK_WEBHOOK:  "${CHIMEFRB_SLACK_WEBHOOK:-}"
+      CHIMEFRB_GITHUB_TOKEN:   "${CHIMEFRB_GITHUB_TOKEN:-}"
+    volumes:
+      - ../instruments:/instruments:ro
     ports:
       - "4317:4317"   # OTLP gRPC — instruments connect here
       - "2112:2112"   # Prometheus metrics
@@ -210,7 +219,8 @@ services:
   # ── Sherlock AI troubleshooting agent ────────────────────────────────────────
   sherlock:
     build:
-      context: ../sherlock
+      context: ..
+      dockerfile: sherlock/Dockerfile
     restart: unless-stopped
     environment:
       SHERLOCK_INSTRUMENTS_DIR: "/app/instruments"

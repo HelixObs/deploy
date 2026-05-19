@@ -10,9 +10,12 @@ Environment variables (all have localhost defaults):
     SHERLOCK_URL  - Sherlock service base URL
     TEMPO_URL     - Tempo HTTP API base URL
     PROMETHEUS_URL - Prometheus base URL
+    LOKI_URL      - Loki HTTP API base URL
+    LOG_ENDPOINT  - OTel Collector gRPC for OTLP log shipping (port 4319)
     OTLP_ENDPOINT - OTLP gRPC endpoint for the Python client
 """
 
+import json
 import os
 import time
 import uuid
@@ -35,6 +38,8 @@ GATEWAY_URL    = os.getenv("GATEWAY_URL",    "http://localhost:8080")
 SHERLOCK_URL   = os.getenv("SHERLOCK_URL",   "http://localhost:8082")
 TEMPO_URL      = os.getenv("TEMPO_URL",      "http://localhost:3201")
 PROMETHEUS_URL = os.getenv("PROMETHEUS_URL", "http://localhost:9091")
+LOKI_URL       = os.getenv("LOKI_URL",       "http://localhost:3101")
+LOG_ENDPOINT   = os.getenv("LOG_ENDPOINT",   "http://localhost:4319")
 OTLP_ENDPOINT  = os.getenv("OTLP_ENDPOINT", "localhost:4317")
 
 
@@ -83,6 +88,7 @@ def instrument():
     """A real Instrument that exports spans to the running gateway via OTLP gRPC."""
     inst = Instrument.__new__(Instrument)
     inst.instrument_id = "TEST"
+    inst._process_name = None
 
     from helixobs._store import TraceStore
     inst._store = TraceStore()
@@ -155,4 +161,38 @@ def wait_for_events(db_cursor, entity_id: str, count: int = 1, timeout: float = 
         if len(rows) >= count:
             return [dict(r) for r in rows]
         time.sleep(0.3)
+    return []
+
+
+def wait_for_loki(stream_selector: str, line_filter: str = "", timeout: float = 20.0) -> list[dict]:
+    """Poll Loki until matching log lines appear. Returns list of parsed JSON log bodies.
+
+    Args:
+        stream_selector: LogQL stream selector, e.g. '{service_name="my-svc"}'
+        line_filter:     Optional LogQL pipe filter, e.g. '| helix_entity_id = `abc`'
+        timeout:         Seconds to wait (Loki OTLP ingestion lag is 2-5 s).
+    """
+    query = f"{stream_selector} {line_filter}".strip()
+    client = httpx.Client(base_url=LOKI_URL, timeout=10)
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        try:
+            resp = client.get("/loki/api/v1/query_range", params={
+                "query": query,
+                "limit": 50,
+                "start": str(int((time.time() - 120) * 1e9)),
+            })
+            if resp.status_code == 200:
+                lines = []
+                for stream in resp.json().get("data", {}).get("result", []):
+                    for _ts, msg in stream.get("values", []):
+                        try:
+                            lines.append(json.loads(msg))
+                        except Exception:
+                            lines.append({"_raw": msg})
+                if lines:
+                    return lines
+        except Exception:
+            pass
+        time.sleep(2)
     return []

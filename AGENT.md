@@ -7,7 +7,8 @@ run the platform locally or in CI lives here.
 
 ```
 docker-compose.yml          Full stack: DB, gateway, OTel Collector, Sherlock, UI,
-                            mock-telescope, Prometheus, Loki, Tempo, Grafana, Alloy
+                            mock-telescope, Prometheus, Loki, Tempo, Grafana, Alloy, Caddy
+Caddyfile                   Caddy reverse proxy config — TLS termination for UI, Grafana, gRPC
 alloy-config.alloy          Grafana Alloy: scrapes stdout logs → Loki
 otel-collector-config.yml   OTel Collector: receives OTLP → exports to Tempo + Loki
 prometheus.yml              Prometheus scrape config (all services)
@@ -32,19 +33,48 @@ tests/
 
 ## Services and ports
 
-| Service | Port | Notes |
+### Production (Caddy-proxied, externally accessible)
+
+| Service | External port | Notes |
 |---|---|---|
-| Gateway (OTLP gRPC) | 4317 | Instrument OTLP endpoint |
+| UI | 443 (HTTPS) | Caddy → ui:3000 |
+| Grafana | 3001 (HTTPS) | Caddy → grafana:3000; `admin` / `admin` |
+| Gateway (OTLP gRPC) | 4317 (plaintext, Phase 1) | Direct until CHIME switches to TLS |
+| OTel Collector (gRPC logs) | 4319 (plaintext, Phase 1) | Direct until Phase 2 |
+
+### Internal / SSH-tunnel only (no Arbutus security group rule)
+
+| Service | Host port | Notes |
+|---|---|---|
 | Gateway (API) | 8080 | `GET /api/v1/entity/{id}/graph` |
 | Gateway (metrics) | 2112 | Prometheus scrape target |
-| Sherlock | 8082 | FastAPI — diagnose, memory, health |
+| Sherlock | — | Docker-internal only; no host binding |
 | Sherlock (metrics) | 9102 | Prometheus scrape target |
-| UI | 8081 | Next.js front end |
-| Grafana | 3001 | `admin` / `admin` |
 | Prometheus | 9091 | Query UI |
 | TimescaleDB | 5432 | `helix` / `helix` / `helixobs` |
 | Loki | 3101 | Log ingestion and query |
 | Tempo | 3201 | Trace query (Grafana datasource) |
+
+## TLS (Caddy) migration
+
+**Phase 1 (current):** Caddy handles HTTPS for UI (443) and Grafana (3001). CHIME still connects
+plaintext on 4317/4319. No CHIME-side changes needed.
+
+**Phase 2 (gRPC TLS):** Coordinate with CHIME to update their OTLP endpoint to TLS.
+1. Uncomment the gRPC blocks in `Caddyfile`.
+2. Remove `"4317:4317"` from `gateway` ports in `docker-compose.yml`.
+3. Remove `"4319:4317"` from `otel-collector` ports in `docker-compose.yml`.
+4. Add `"4317:4317"` and `"4319:4319"` to `caddy` ports in `docker-compose.yml`.
+5. `docker compose up -d caddy gateway otel-collector`
+6. CHIME updates `GATEWAY_ENDPOINT=206-12-91-148.cloud.computecanada.ca:4317` (TLS, no `insecure=True`).
+7. Close plaintext 4317/4319 in Arbutus security group (already restricted to CHIME's IP range).
+
+**Production env vars** (set in shell or `/opt/helixobs/.env`):
+```
+HELIXOBS_DOMAIN=206-12-91-148.cloud.computecanada.ca
+UI_BASE_URL=https://206-12-91-148.cloud.computecanada.ca
+GRAFANA_URL=https://206-12-91-148.cloud.computecanada.ca:3001
+```
 
 ## Dashboards
 
@@ -76,14 +106,29 @@ They are mounted read-only from `../gateway/migrations/`. To add a new migration
 ## Running the stack
 
 ```bash
-# Full stack (rebuilds images):
+# Production (with Caddy TLS — set env vars first):
+export HELIXOBS_DOMAIN=206-12-91-148.cloud.computecanada.ca
+export UI_BASE_URL=https://206-12-91-148.cloud.computecanada.ca
+export GRAFANA_URL=https://206-12-91-148.cloud.computecanada.ca:3001
 docker compose up --build
+
+# Local dev (no TLS — services accessible on localhost ports via SSH tunnel or direct):
+docker compose up --build
+# UI:     http://localhost — Caddy issues local CA cert for 'localhost'
+# Grafana: https://localhost:3001 (Caddy local CA)
+# Gateway: localhost:4317 (plaintext gRPC, unchanged for dev)
+
+# Caddy only (after code change):
+docker compose up -d caddy
 
 # Rebuild only one service:
 docker compose build gateway && docker compose up -d gateway
 
 # Tail logs:
-docker compose logs -f gateway sherlock
+docker compose logs -f gateway sherlock caddy
+
+# Verify Caddy cert issuance:
+docker compose logs caddy | grep -i "certificate\|tls\|acme"
 
 # Tear down (removes volumes — resets DB):
 docker compose down -v
@@ -93,6 +138,9 @@ docker compose down -v
 
 | Variable | Required for | Notes |
 |---|---|---|
+| `HELIXOBS_DOMAIN` | Caddy TLS cert | Defaults to `localhost` (local CA cert) |
+| `UI_BASE_URL` | Gateway notification links | Full URL to UI; defaults to `http://localhost:8081` |
+| `GRAFANA_URL` | Gateway + Sherlock links | Full URL to Grafana; defaults to `http://localhost:3001` |
 | `ANTHROPIC_API_KEY` | Sherlock agent loop | Use a placeholder for non-Sherlock CI |
 | `GITHUB_TOKEN` | `fetch_github_*` tools | Optional — Sherlock works without it |
 

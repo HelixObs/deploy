@@ -3,14 +3,22 @@ name: helixobs
 # Bring up the full HelixObs stack:
 #   docker compose up --build
 #
-# UI:          http://localhost:8081
-# Sherlock:    http://localhost:8082
-# Grafana:     http://localhost:3001  (admin / admin)
-# Prometheus:  http://localhost:9091
-# Gateway:     localhost:4317  (OTLP gRPC — point your instrument here)
+# Production (with Caddy TLS):
+#   HELIXOBS_DOMAIN=206-12-91-148.cloud.computecanada.ca \
+#   UI_BASE_URL=https://206-12-91-148.cloud.computecanada.ca \
+#   GRAFANA_URL=https://206-12-91-148.cloud.computecanada.ca:3001 \
+#   docker compose up --build
+#
+# UI:          https://$HELIXOBS_DOMAIN        (or http://localhost:8081 if Caddy not running)
+# Sherlock:    internal only (SSH tunnel: ssh -L 8082:localhost:8082 helixobs)
+# Grafana:     https://$HELIXOBS_DOMAIN:3001   (or http://localhost:3001)
+# Prometheus:  http://localhost:9091           (SSH tunnel in production)
+# Gateway:     $HELIXOBS_DOMAIN:4317           (gRPC+TLS in Phase 2; plaintext during Phase 1)
 # TimescaleDB: localhost:5432  (helix / helix / helixobs)
 
 volumes:
+  caddy-data:
+  caddy-config:
   db-data:
     driver: local
     driver_opts:
@@ -46,6 +54,44 @@ networks:
   helix:
 
 services:
+
+  # ── Caddy (TLS termination + reverse proxy) ───────────────────────────────────
+  #
+  # Phase 1 (current): Caddy handles HTTPS for UI (443) and Grafana (3001).
+  #   CHIME still connects to gateway:4317 and otel-collector:4319 in plaintext.
+  #
+  # Phase 2 (after CHIME switches OTLP endpoint to TLS):
+  #   1. Uncomment the gRPC blocks in Caddyfile.
+  #   2. Remove "4317:4317" from gateway ports below.
+  #   3. Remove "4319:4317" from otel-collector ports below.
+  #   4. Add "4317:4317" and "4319:4319" to caddy ports below.
+  #   5. docker compose up -d caddy gateway otel-collector
+  #
+  # Required env vars for production:
+  #   HELIXOBS_DOMAIN  — e.g. 206-12-91-148.cloud.computecanada.ca
+  #   UI_BASE_URL      — e.g. https://206-12-91-148.cloud.computecanada.ca
+  #   GRAFANA_URL      — e.g. https://206-12-91-148.cloud.computecanada.ca:3001
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      HELIXOBS_DOMAIN: "${HELIXOBS_DOMAIN:-localhost}"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    ports:
+      - "80:80"       # ACME HTTP-01 challenge + HTTP→HTTPS redirect
+      - "443:443"     # HTTPS: UI
+      - "443:443/udp" # HTTP/3 (QUIC)
+      - "3001:3001"   # HTTPS: Grafana (Phase 1)
+      # Phase 2: enable gRPC+TLS
+      # - "4317:4317"
+      # - "4319:4319"
+    depends_on:
+      - ui
+      - grafana
+    networks: [helix]
 
   # ── TimescaleDB ───────────────────────────────────────────────────────────────
   db:
@@ -92,17 +138,17 @@ services:
       METRICS_ADDR:        ":2112"
       API_ADDR:            ":8080"
       INSTRUMENTS_DIR:     "/instruments"
-      UI_BASE_URL:         "${PUBLIC_URL:-http://localhost}:8081"
-      GRAFANA_URL:         "${PUBLIC_URL:-http://localhost}:3001"
+      UI_BASE_URL:         "${UI_BASE_URL:-http://localhost:8081}"
+      GRAFANA_URL:         "${GRAFANA_URL:-http://localhost:3001}"
       # Instrument secrets — values come from .env or shell environment, never committed
       CHIMEFRB_SLACK_WEBHOOK:  "${CHIMEFRB_SLACK_WEBHOOK:-}"
       CHIMEFRB_GITHUB_TOKEN:   "${CHIMEFRB_GITHUB_TOKEN:-}"
     volumes:
       - ../instruments:/instruments:ro
     ports:
-      - "4317:4317"   # OTLP gRPC — instruments connect here
+      - "4317:4317"   # Phase 1: plaintext gRPC; Phase 2: remove when Caddy owns TLS termination
       - "2112:2112"   # Prometheus metrics
-      - "8080:8080"   # Graph API
+      - "8080:8080"   # HTTP API (no security group rule — SSH tunnel only)
     depends_on:
       db:
         condition: service_healthy
@@ -122,7 +168,7 @@ services:
     volumes:
       - ./otel-collector-config.yml:/etc/otel/config.yml:ro
     ports:
-      - "4319:4317"   # OTLP gRPC for external log shipping (traces go to gateway:4317)
+      - "4319:4317"   # Phase 1: plaintext gRPC logs; Phase 2: remove when Caddy owns TLS termination
     networks: [helix]
 
   # ── Tempo (trace storage) ─────────────────────────────────────────────────────
@@ -195,8 +241,6 @@ services:
       - grafana-data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
       - ./grafana/dashboards:/etc/grafana/dashboards:ro
-    ports:
-      - "3001:3000"
     depends_on:
       - prometheus
       - loki
@@ -227,10 +271,9 @@ services:
       ANTHROPIC_API_KEY:        "${ANTHROPIC_API_KEY}"
       GATEWAY_DB_URL:           "postgres://helix:helix@db:5432/helixobs"
       GITHUB_TOKEN:             "${GITHUB_TOKEN:-}"
-      GRAFANA_URL:              "${PUBLIC_URL:-http://localhost}:3001"
+      GRAFANA_URL:              "${GRAFANA_URL:-http://localhost:3001}"
     ports:
-      - "8082:8082"
-      - "9102:9102"   # Prometheus metrics
+      - "9102:9102"   # Prometheus metrics (SSH tunnel for external access)
     networks: [helix]
 
   # ── HelixObs UI ──────────────────────────────────────────────────────────────
@@ -241,9 +284,7 @@ services:
     environment:
       GATEWAY_URL:  "http://gateway:8080"
       SHERLOCK_URL: "http://sherlock:8082"
-      GRAFANA_URL:  "${PUBLIC_URL:-http://localhost}:3001"
-    ports:
-      - "8081:3000"
+      GRAFANA_URL:  "${GRAFANA_URL:-http://localhost:3001}"
     depends_on:
       gateway:
         condition: service_healthy

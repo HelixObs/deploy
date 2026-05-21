@@ -2,4 +2,3 @@
 # Place your <instrument-id>-context.yml files here on the production host
 # but do not commit them.
 *.yml
-!example-instrument.yml

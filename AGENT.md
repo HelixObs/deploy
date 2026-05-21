@@ -15,8 +15,8 @@ prometheus.yml              Prometheus scrape config (all services)
 loki-config.yml             Loki storage and ingestion config
 tempo-config.yml            Tempo storage config (5-min max block, 1 GB mem limit)
 instruments/
-  example-instrument.yml  Template — copy to <id>-context.yml, fill in values, do not commit
-  .gitignore              Ignores *.yml except example-instrument.yml
+  example-instrument.yml.template  Template — copy to <id>-context.yml, fill in values, do not commit
+  .gitignore                       Ignores all *.yml (actual configs stay off of git)
 grafana/
   provisioning/
     datasources/            Auto-provisions Prometheus, Loki, Tempo datasources

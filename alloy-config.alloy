@@ -62,7 +62,7 @@ loki.write "default" {
 // with 400 and does not store them twice, so the no-op case is harmless.
 loki.write "remote" {
   endpoint {
-    url       = env("REMOTE_LOKI_URL")
-    tenant_id = env("REMOTE_LOKI_TENANT_ID")
+    url       = sys.env("REMOTE_LOKI_URL")
+    tenant_id = sys.env("REMOTE_LOKI_TENANT_ID")
   }
 }

@@ -1,7 +1,7 @@
 {
   "__inputs": [],
   "__requires": [],
-  "description": "HelixObs platform health \u2014 host, gateway, and backend services.",
+  "description": "HelixObs platform health \u2014 host, herald, and backend services.",
   "editable": true,
   "graphTooltip": 1,
   "id": null,
@@ -226,7 +226,7 @@
         "y": 7
       },
       "id": 10,
-      "title": "Gateway",
+      "title": "Herald",
       "type": "row"
     },
     {
@@ -298,7 +298,7 @@
           "refId": "C"
         }
       ],
-      "description": "End-to-end gateway processing time per helix span \u2014 from receipt to forwarding. Covers TraceStore lookup, DB write scheduling, and span mutation. Alert: p99 > 100 ms."
+      "description": "End-to-end herald processing time per helix span \u2014 from receipt to forwarding. Covers TraceStore lookup, DB write scheduling, and span mutation. Alert: p99 > 100 ms."
     },
     {
       "datasource": {
@@ -377,16 +377,16 @@
         "y": 14
       },
       "id": 15,
-      "title": "Gateway RSS Memory",
+      "title": "Herald RSS Memory",
       "type": "timeseries",
       "targets": [
         {
-          "expr": "process_resident_memory_bytes{job=\"gateway\"}",
+          "expr": "process_resident_memory_bytes{job=\"herald\"}",
           "legendFormat": "rss",
           "refId": "A"
         }
       ],
-      "description": "Resident set size of the gateway process in bytes. Sustained growth beyond baseline may indicate a TraceStore leak or goroutine accumulation. Alert: > 1.5 GB."
+      "description": "Resident set size of the herald process in bytes. Sustained growth beyond baseline may indicate a TraceStore leak or goroutine accumulation. Alert: > 1.5 GB."
     },
     {
       "datasource": {
@@ -475,7 +475,7 @@
           "refId": "A"
         }
       ],
-      "description": "Rate of helix.error span events per second, by instrument. These are domain errors (e.g. RFI contamination, classifier failure), not gateway errors. Alert: > 5% of entity rate for 5 min."
+      "description": "Rate of helix.error span events per second, by instrument. These are domain errors (e.g. RFI contamination, classifier failure), not herald errors. Alert: > 5% of entity rate for 5 min."
     },
     {
       "datasource": {
@@ -801,16 +801,16 @@
         "textMode": "auto",
         "colorMode": "background"
       },
-      "title": "Gateway",
+      "title": "Herald",
       "type": "stat",
       "targets": [
         {
-          "expr": "up{job=\"gateway\"}",
+          "expr": "up{job=\"herald\"}",
           "legendFormat": "",
           "refId": "A"
         }
       ],
-      "description": "Gateway process uptime derived from process_start_time_seconds. Resets on container restart."
+      "description": "Herald process uptime derived from process_start_time_seconds. Resets on container restart."
     },
     {
       "datasource": {
@@ -848,7 +848,7 @@
           "refId": "C"
         }
       ],
-      "description": "Spans accepted from the gateway vs successfully exported to Tempo. A gap between the two indicates export failures. refused_spans > 0 signals backpressure \u2014 the collector is falling behind."
+      "description": "Spans accepted from the herald vs successfully exported to Tempo. A gap between the two indicates export failures. refused_spans > 0 signals backpressure \u2014 the collector is falling behind."
     },
     {
       "datasource": {

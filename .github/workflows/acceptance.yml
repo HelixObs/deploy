@@ -73,7 +73,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -e "../client-python[dev]"
+          pip install "helixobs[dev]"
           pip install -r tests/acceptance/requirements.txt
 
       - name: Run acceptance tests (non-Sherlock)

@@ -18,17 +18,31 @@ loki.process "helix_json" {
   stage.json {
     expressions = {
       helix_instrument_id = "helix_instrument_id",
+      helix_process_name  = "helix_process_name",
       level               = "level",
+      helix_entity_id     = "helix_entity_id",
+      otel_trace_id       = "otel_trace_id",
     }
   }
 
-  // Promote only low-cardinality values as stream labels.
-  // helix_entity_id is intentionally excluded — one stream per entity would
-  // exhaust Loki's stream limit. Filter by entity at query time via | json.
+  // Low-cardinality fields as stream labels — safe to index.
+  // helix_entity_id is intentionally NOT a stream label — one stream per entity
+  // would exhaust Loki's stream limit. It is promoted as structured metadata instead.
   stage.labels {
     values = {
       helix_instrument_id = "",
+      helix_process_name  = "",
       level               = "",
+    }
+  }
+
+  // Promote entity ID and trace ID as structured metadata so the HelixObs
+  // Grafana dashboards can filter with | helix_entity_id = `...` and
+  // | trace_id = `...` — the same queries that work for OTLP-delivered logs.
+  stage.structured_metadata {
+    values = {
+      helix_entity_id = "",
+      trace_id        = "otel_trace_id",
     }
   }
 

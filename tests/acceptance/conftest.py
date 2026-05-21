@@ -6,7 +6,7 @@ Requires the full Docker Compose stack to be running:
 
 Environment variables (all have localhost defaults):
     DB_URL        - TimescaleDB connection string
-    GATEWAY_URL   - HTTP API base URL
+    HERALD_URL   - HTTP API base URL
     SHERLOCK_URL  - Sherlock service base URL
     TEMPO_URL     - Tempo HTTP API base URL
     PROMETHEUS_URL - Prometheus base URL
@@ -34,7 +34,7 @@ from helixobs.instrument import Instrument
 # ── Config ────────────────────────────────────────────────────────────────────
 
 DB_URL         = os.getenv("DB_URL",         "postgres://helix:helix@localhost:5432/helixobs")
-GATEWAY_URL    = os.getenv("GATEWAY_URL",    "http://localhost:8080")
+HERALD_URL    = os.getenv("HERALD_URL",    "http://localhost:8080")
 SHERLOCK_URL   = os.getenv("SHERLOCK_URL",   "http://localhost:8082")
 TEMPO_URL      = os.getenv("TEMPO_URL",      "http://localhost:3201")
 PROMETHEUS_URL = os.getenv("PROMETHEUS_URL", "http://localhost:9091")
@@ -62,8 +62,8 @@ def db_cursor(db):
 # ── HTTP clients ──────────────────────────────────────────────────────────────
 
 @pytest.fixture(scope="session")
-def gateway():
-    return httpx.Client(base_url=GATEWAY_URL, timeout=30)
+def herald():
+    return httpx.Client(base_url=HERALD_URL, timeout=30)
 
 
 @pytest.fixture(scope="session")
@@ -85,7 +85,7 @@ def tempo_client():
 
 @pytest.fixture
 def instrument():
-    """A real Instrument that exports spans to the running gateway via OTLP gRPC."""
+    """A real Instrument that exports spans to the running herald via OTLP gRPC."""
     inst = Instrument.__new__(Instrument)
     inst.instrument_id = "TEST"
     inst._process_name = None

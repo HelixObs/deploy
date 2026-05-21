@@ -19,11 +19,11 @@ jobs:
         with:
           path: repos/deploy
 
-      - name: Check out gateway
+      - name: Check out herald
         uses: actions/checkout@v4
         with:
           repository: HelixObs/gateway
-          path: repos/gateway
+          path: repos/herald
 
       - name: Check out ui
         uses: actions/checkout@v4
@@ -60,7 +60,7 @@ jobs:
 
       - name: Wait for stack to be healthy
         run: |
-          echo "Waiting for gateway healthcheck..."
+          echo "Waiting for herald healthcheck..."
           for i in $(seq 1 24); do
             if curl -sf http://localhost:2112/metrics > /dev/null; then
               echo "Gateway healthy after ${i}×5s"
@@ -87,7 +87,7 @@ jobs:
         run: pytest -v -m "not sherlock and not destructive" --tb=short
         env:
           DB_URL:         postgres://helix:helix@localhost:5432/helixobs
-          GATEWAY_URL:    http://localhost:8080
+          HERALD_URL:    http://localhost:8080
           LOKI_URL:       http://localhost:3101
           TEMPO_URL:      http://localhost:3201
           PROMETHEUS_URL: http://localhost:9091

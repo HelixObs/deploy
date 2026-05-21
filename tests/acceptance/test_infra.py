@@ -17,7 +17,7 @@ import pytest
 from conftest import PROMETHEUS_URL
 
 
-EXPECTED_TARGETS = {"gateway", "node", "otel-collector", "loki", "tempo"}
+EXPECTED_TARGETS = {"herald", "node", "otel-collector", "loki", "tempo"}
 
 EXPECTED_TABLES = {
     "entities",

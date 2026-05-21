@@ -9,9 +9,9 @@ global:
 #       "X-Scope-OrgID": "${REMOTE_METRICS_TENANT_ID:-}"
 
 scrape_configs:
-  - job_name: gateway
+  - job_name: herald
     static_configs:
-      - targets: ["gateway:2112"]
+      - targets: ["herald:2112"]
 
   - job_name: node
     static_configs:

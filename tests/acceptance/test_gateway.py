@@ -262,10 +262,10 @@ def test_T1_12_idempotency_duplicate_span(instrument, db_cursor):
 
 def test_T1_13_prometheus_entity_counter(instrument, db_cursor):
     import httpx
-    from conftest import GATEWAY_URL
+    from conftest import HERALD_URL
 
     # Query gateway's own /metrics endpoint (always current, no scrape delay)
-    metrics_url = GATEWAY_URL.replace(":8080", ":2112")
+    metrics_url = HERALD_URL.replace(":8080", ":2112")
     def sum_metric(text, name, must_contain):
         total = 0.0
         for line in text.splitlines():
@@ -290,9 +290,9 @@ def test_T1_13_prometheus_entity_counter(instrument, db_cursor):
 
 def test_T1_14_prometheus_error_and_event_counters(instrument):
     import httpx
-    from conftest import GATEWAY_URL
+    from conftest import HERALD_URL
 
-    metrics_url = GATEWAY_URL.replace(":8080", ":2112")
+    metrics_url = HERALD_URL.replace(":8080", ":2112")
 
     def get_counter(text, name, labels):
         for line in text.splitlines():

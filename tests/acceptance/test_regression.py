@@ -43,7 +43,7 @@ def test_T1_33_operation_dedup_blocked_by_seen_set(instrument, db_cursor):
 
 # ── T1-34 ─────────────────────────────────────────────────────────────────────
 
-def test_T1_34_graph_api_no_duplicate_nodes_for_placeholder(instrument, db_cursor, gateway):
+def test_T1_34_graph_api_no_duplicate_nodes_for_placeholder(instrument, db_cursor, herald):
     eid = unique_id("block-new")
 
     # operate() on unknown entity → placeholder upsert
@@ -52,7 +52,7 @@ def test_T1_34_graph_api_no_duplicate_nodes_for_placeholder(instrument, db_curso
     instrument._provider.force_flush(timeout_millis=5000)
     wait_for_operation(db_cursor, eid)
 
-    resp = gateway.get(f"/api/v1/entity/{eid}/graph")
+    resp = herald.get(f"/api/v1/entity/{eid}/graph")
     assert resp.status_code == 200, f"graph API returned {resp.status_code}"
     data = resp.json()
 
@@ -62,7 +62,7 @@ def test_T1_34_graph_api_no_duplicate_nodes_for_placeholder(instrument, db_curso
 
 # ── T1-35 ─────────────────────────────────────────────────────────────────────
 
-def test_T1_35_graph_api_full_dag_three_level_chain(instrument, db_cursor, gateway):
+def test_T1_35_graph_api_full_dag_three_level_chain(instrument, db_cursor, herald):
     block_id = unique_id("block")
     cand_id  = unique_id("cand")
     event_id = unique_id("event")
@@ -72,7 +72,7 @@ def test_T1_35_graph_api_full_dag_three_level_chain(instrument, db_cursor, gatew
     emit_entity(instrument, event_id, parents=[cand_id])
     wait_for_entity(db_cursor, event_id)
 
-    resp = gateway.get(f"/api/v1/entity/{event_id}/graph")
+    resp = herald.get(f"/api/v1/entity/{event_id}/graph")
     assert resp.status_code == 200
     data = resp.json()
 

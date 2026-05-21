@@ -12,7 +12,7 @@ Run on-demand against a live stack:
 All tests require:
     docker compose up -d   (full stack)
     OTLP_ENDPOINT=localhost:4317
-    GATEWAY_URL=http://localhost:8080
+    HERALD_URL=http://localhost:8080
 
 UG-08 verifies log-record injection and end-to-end Loki delivery.
 Loki delivery is attempted but marked xfail when running outside the
@@ -43,7 +43,7 @@ from conftest import (
 # Graph API must reflect has_error=true on that node.
 
 @pytest.mark.userguide
-def test_UG_01_layer0_error_path_has_error_in_graph(instrument, db_cursor, gateway):
+def test_UG_01_layer0_error_path_has_error_in_graph(instrument, db_cursor, herald):
     eid = unique_id("ug")
     token = instrument.create("detector", id=eid).start()
     token.error(metadata={"message": "score_below_threshold", "score": "0.3"})
@@ -56,7 +56,7 @@ def test_UG_01_layer0_error_path_has_error_in_graph(instrument, db_cursor, gatew
     assert any(e["event_name"] == "helix.error" for e in events), \
         "helix.error event not found after token.error()"
 
-    resp = gateway.get(f"/api/v1/entity/{eid}/graph")
+    resp = herald.get(f"/api/v1/entity/{eid}/graph")
     assert resp.status_code == 200
     node = next((n for n in resp.json()["nodes"] if n["id"] == eid), None)
     assert node is not None, f"node {eid} missing from graph API response"
@@ -67,7 +67,7 @@ def test_UG_01_layer0_error_path_has_error_in_graph(instrument, db_cursor, gatew
 # USER_GUIDE.md §4 Layer 1 — context manager: parent appears in graph API.
 
 @pytest.mark.userguide
-def test_UG_02_context_manager_parent_visible_in_graph(instrument, db_cursor, gateway):
+def test_UG_02_context_manager_parent_visible_in_graph(instrument, db_cursor, herald):
     frame_id = unique_id("ug-frame")
     prod_id  = unique_id("ug-prod")
 
@@ -84,7 +84,7 @@ def test_UG_02_context_manager_parent_visible_in_graph(instrument, db_cursor, ga
     assert frame_id in prod_row["parent_ids"], \
         f"parent {frame_id} not in parent_ids: {prod_row['parent_ids']}"
 
-    resp = gateway.get(f"/api/v1/entity/{prod_id}/graph")
+    resp = herald.get(f"/api/v1/entity/{prod_id}/graph")
     assert resp.status_code == 200
     node_ids = {n["id"] for n in resp.json()["nodes"]}
     assert frame_id in node_ids, "parent node missing from graph API"
@@ -174,7 +174,7 @@ def test_UG_06_operate_error_records_helix_error_event(instrument, db_cursor):
 # USER_GUIDE.md §5 Multi-stage pipeline: 3-entity chain appears at depth 3 in graph API.
 
 @pytest.mark.userguide
-def test_UG_07_multi_stage_pipeline_depth_3(instrument, db_cursor, gateway):
+def test_UG_07_multi_stage_pipeline_depth_3(instrument, db_cursor, herald):
     frame_id   = unique_id("ug-frame")
     product_id = unique_id("ug-prod")
     result_id  = unique_id("ug-res")
@@ -193,7 +193,7 @@ def test_UG_07_multi_stage_pipeline_depth_3(instrument, db_cursor, gateway):
 
     wait_for_entity(db_cursor, result_id)
 
-    resp = gateway.get(f"/api/v1/entity/{result_id}/graph")
+    resp = herald.get(f"/api/v1/entity/{result_id}/graph")
     assert resp.status_code == 200
     data = resp.json()
     node_ids = {n["id"] for n in data["nodes"]}

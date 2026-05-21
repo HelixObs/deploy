@@ -2,12 +2,12 @@
     admin localhost:2019
 }
 
-# HTTPS: HelixObs UI + gateway auth endpoint
+# HTTPS: HelixObs UI + herald auth endpoint
 # Caddy automatically redirects http:// to https:// and handles Let's Encrypt via TLS-ALPN-01.
 {$HELIXOBS_DOMAIN} {
     # Auth token exchange — instrument pipelines call this to get a HelixObs JWT.
     handle /auth/token {
-        reverse_proxy gateway:8080
+        reverse_proxy herald:8080
     }
     # Everything else → UI
     handle {
@@ -22,7 +22,7 @@
 
 # gRPC+TLS: OTLP traces (Phase 2 — enable after CHIME switches to TLS endpoint)
 # {$HELIXOBS_DOMAIN}:4317 {
-#     reverse_proxy h2c://gateway:4317
+#     reverse_proxy h2c://herald:4317
 # }
 
 # gRPC+TLS: OTLP logs (Phase 2 — enable after CHIME switches to TLS endpoint)

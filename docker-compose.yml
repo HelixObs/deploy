@@ -58,14 +58,14 @@ services:
   # ── Caddy (TLS termination + reverse proxy) ───────────────────────────────────
   #
   # Phase 1 (current): Caddy handles HTTPS for UI (443) and Grafana (3001).
-  #   CHIME still connects to gateway:4317 and otel-collector:4319 in plaintext.
+  #   CHIME still connects to herald:4317 and otel-collector:4319 in plaintext.
   #
   # Phase 2 (after CHIME switches OTLP endpoint to TLS):
   #   1. Uncomment the gRPC blocks in Caddyfile.
-  #   2. Remove "4317:4317" from gateway ports below.
+  #   2. Remove "4317:4317" from herald ports below.
   #   3. Remove "4319:4317" from otel-collector ports below.
   #   4. Add "4317:4317" and "4319:4319" to caddy ports below.
-  #   5. docker compose up -d caddy gateway otel-collector
+  #   5. docker compose up -d caddy herald otel-collector
   #
   # Required env vars for production:
   #   HELIXOBS_DOMAIN  — e.g. 206-12-91-148.cloud.computecanada.ca
@@ -109,15 +109,15 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data
       # Migrations run automatically on first container start.
-      - ../gateway/migrations/001_init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
-      - ../gateway/migrations/002_instrument_memory.sql:/docker-entrypoint-initdb.d/002_instrument_memory.sql:ro
-      - ../gateway/migrations/003_trace_dedup.sql:/docker-entrypoint-initdb.d/003_trace_dedup.sql:ro
-      - ../gateway/migrations/004_sherlock_usage.sql:/docker-entrypoint-initdb.d/004_sherlock_usage.sql:ro
-      - ../gateway/migrations/005_entity_events_trace_id.sql:/docker-entrypoint-initdb.d/005_entity_events_trace_id.sql:ro
-      - ../gateway/migrations/006_operation_duration.sql:/docker-entrypoint-initdb.d/006_operation_duration.sql:ro
-      - ../gateway/migrations/007_entity_events_error_index.sql:/docker-entrypoint-initdb.d/007_entity_events_error_index.sql:ro
-      - ../gateway/migrations/008_notifications.sql:/docker-entrypoint-initdb.d/008_notifications.sql:ro
-      - ../gateway/migrations/009_monitor_index.sql:/docker-entrypoint-initdb.d/009_monitor_index.sql:ro
+      - ../herald/migrations/001_init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
+      - ../herald/migrations/002_instrument_memory.sql:/docker-entrypoint-initdb.d/002_instrument_memory.sql:ro
+      - ../herald/migrations/003_trace_dedup.sql:/docker-entrypoint-initdb.d/003_trace_dedup.sql:ro
+      - ../herald/migrations/004_sherlock_usage.sql:/docker-entrypoint-initdb.d/004_sherlock_usage.sql:ro
+      - ../herald/migrations/005_entity_events_trace_id.sql:/docker-entrypoint-initdb.d/005_entity_events_trace_id.sql:ro
+      - ../herald/migrations/006_operation_duration.sql:/docker-entrypoint-initdb.d/006_operation_duration.sql:ro
+      - ../herald/migrations/007_entity_events_error_index.sql:/docker-entrypoint-initdb.d/007_entity_events_error_index.sql:ro
+      - ../herald/migrations/008_notifications.sql:/docker-entrypoint-initdb.d/008_notifications.sql:ro
+      - ../herald/migrations/009_monitor_index.sql:/docker-entrypoint-initdb.d/009_monitor_index.sql:ro
     ports:
       - "5432:5432"
     healthcheck:
@@ -127,14 +127,14 @@ services:
       retries: 10
     networks: [helix]
 
-  # ── HelixObs gateway ──────────────────────────────────────────────────────────
-  gateway:
-    image: ghcr.io/helixobs/gateway:latest
+  # ── HelixObs herald ──────────────────────────────────────────────────────────
+  herald:
+    image: ghcr.io/helixobs/herald:latest
     build:
-      context: ../gateway
+      context: ../herald
     restart: unless-stopped
     environment:
-      GATEWAY_ADDR:        ":4317"
+      HERALD_ADDR:        ":4317"
       COLLECTOR_ENDPOINT:  "otel-collector:4317"
       DB_URL:              "postgres://helix:helix@db:5432/helixobs"
       METRICS_ADDR:        ":2112"
@@ -276,7 +276,7 @@ services:
     environment:
       SHERLOCK_INSTRUMENTS_DIR: "/app/instruments"
       ANTHROPIC_API_KEY:        "${ANTHROPIC_API_KEY}"
-      GATEWAY_DB_URL:           "postgres://helix:helix@db:5432/helixobs"
+      HERALD_DB_URL:           "postgres://helix:helix@db:5432/helixobs"
       GITHUB_TOKEN:             "${GITHUB_TOKEN:-}"
       GRAFANA_URL:              "${GRAFANA_URL:-http://localhost:3001}"
     volumes:
@@ -292,11 +292,11 @@ services:
       context: ../ui
     restart: unless-stopped
     environment:
-      GATEWAY_URL:  "http://gateway:8080"
+      HERALD_URL:  "http://herald:8080"
       SHERLOCK_URL: "http://sherlock:8082"
       GRAFANA_URL:  "${GRAFANA_URL:-http://localhost:3001}"
     depends_on:
-      gateway:
+      herald:
         condition: service_healthy
       sherlock:
         condition: service_started

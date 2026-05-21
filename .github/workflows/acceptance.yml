@@ -22,7 +22,7 @@ jobs:
       - name: Check out herald
         uses: actions/checkout@v4
         with:
-          repository: HelixObs/gateway
+          repository: HelixObs/herald
           path: repos/herald
 
       - name: Check out ui
@@ -63,7 +63,7 @@ jobs:
           echo "Waiting for herald healthcheck..."
           for i in $(seq 1 24); do
             if curl -sf http://localhost:2112/metrics > /dev/null; then
-              echo "Gateway healthy after ${i}×5s"
+              echo "Herald healthy after ${i}×5s"
               break
             fi
             echo "  attempt $i/24..."

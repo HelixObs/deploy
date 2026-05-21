@@ -20,7 +20,7 @@ services:
       dockerfile: mock-telescope/Dockerfile
     restart: unless-stopped
     environment:
-      GATEWAY_ENDPOINT:            "gateway:4317"
+      HERALD_ENDPOINT:             "herald:4317"
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
       BLOCK_INTERVAL_S:            "3"
       GITHUB_REPO:                 "https://github.com/HelixObs/mock-telescope"

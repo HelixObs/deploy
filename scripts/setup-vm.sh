@@ -46,7 +46,7 @@ fi
 
 # ── Repos ─────────────────────────────────────────────────────────────────────
 
-REPOS=(deploy gateway ui sherlock mock-telescope client-python)
+REPOS=(deploy herald ui sherlock mock-telescope client-python)
 
 sudo mkdir -p "$HELIXOBS_DIR"
 sudo chown ubuntu:ubuntu "$HELIXOBS_DIR"
@@ -70,7 +70,7 @@ ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
 GITHUB_TOKEN=
 # Public URL of this host (used by UI and Sherlock for Grafana links)
 GRAFANA_URL=http://206.12.91.148:3001
-GATEWAY_URL=http://206.12.91.148:8080
+HERALD_URL=http://206.12.91.148:8080
 SHERLOCK_URL=http://206.12.91.148:8082
 EOF
     echo ">>> Created $ENV_FILE — fill in ANTHROPIC_API_KEY if not already set"

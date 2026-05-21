@@ -117,6 +117,7 @@ services:
       - ../gateway/migrations/006_operation_duration.sql:/docker-entrypoint-initdb.d/006_operation_duration.sql:ro
       - ../gateway/migrations/007_entity_events_error_index.sql:/docker-entrypoint-initdb.d/007_entity_events_error_index.sql:ro
       - ../gateway/migrations/008_notifications.sql:/docker-entrypoint-initdb.d/008_notifications.sql:ro
+      - ../gateway/migrations/009_monitor_index.sql:/docker-entrypoint-initdb.d/009_monitor_index.sql:ro
     ports:
       - "5432:5432"
     healthcheck:

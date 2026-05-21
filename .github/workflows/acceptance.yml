@@ -31,6 +31,12 @@ jobs:
           repository: HelixObs/ui
           path: repos/ui
 
+      - name: Check out sherlock
+        uses: actions/checkout@v4
+        with:
+          repository: HelixObs/sherlock
+          path: repos/sherlock
+
       - name: Check out mock-telescope
         uses: actions/checkout@v4
         with:
@@ -46,6 +52,7 @@ jobs:
       - name: Start Docker Compose stack
         run: docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d --build
         env:
+          ANTHROPIC_API_KEY: placeholder
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Wait for stack to be healthy

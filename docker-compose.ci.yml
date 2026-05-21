@@ -1,11 +1,8 @@
 # CI override for GitHub Actions.
 #
-# Problems this solves:
-#   1. docker-compose.yml bind-mounts volumes to /data/* (production VM paths
-#      that don't exist on GitHub runners). This file resets them to managed
-#      Docker volumes so the stack starts cleanly.
-#   2. Sherlock is not exercised by the non-sherlock CI test suite, so we
-#      exclude it from the default stack to save build time.
+# docker-compose.yml bind-mounts volumes to /data/* (production VM paths
+# that don't exist on GitHub runners). This file resets them to managed
+# Docker volumes so the stack starts cleanly in CI.
 #
 # Usage:
 #   docker compose -f docker-compose.yml -f docker-compose.ci.yml up -d --build
@@ -16,13 +13,3 @@ volumes:
   loki-data:
   tempo-data:
   grafana-data:
-
-services:
-  sherlock:
-    profiles: [sherlock]
-
-  # Remove the depends_on sherlock so UI starts without it.
-  ui:
-    depends_on:
-      gateway:
-        condition: service_healthy

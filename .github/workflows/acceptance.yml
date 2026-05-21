@@ -43,6 +43,8 @@ jobs:
           # Placeholder replay file — mock-telescope falls back to random mode when empty
           # Note: working-directory is repos/deploy, so ../l1_headers.json = repos/l1_headers.json
           echo "[]" > ../l1_headers.json
+          # Pre-create the Docker network so the mock-telescope overlay's external:true is satisfied
+          docker network create helixobs_helix
 
       - name: Start Docker Compose stack
         run: docker compose -f docker-compose.yml -f docker-compose.mock-telescope.yml up -d --pull always

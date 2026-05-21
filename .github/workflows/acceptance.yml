@@ -53,7 +53,8 @@ jobs:
         run: |
           sudo mkdir -p /data/db /data/prometheus /data/loki /data/tempo /data/grafana
           # Placeholder replay file — mock-telescope falls back to random mode when empty
-          echo "[]" > repos/l1_headers.json
+          # Note: working-directory is repos/deploy, so ../l1_headers.json = repos/l1_headers.json
+          echo "[]" > ../l1_headers.json
 
       - name: Start Docker Compose stack
         run: docker compose -f docker-compose.yml -f docker-compose.mock-telescope.yml up -d --build

@@ -16,8 +16,7 @@ networks:
 services:
   mock-telescope:
     build:
-      context: ../          # HelixObs root — lets Dockerfile reach client-python/
-      dockerfile: mock-telescope/Dockerfile
+      context: ../mock-telescope
     restart: unless-stopped
     environment:
       HERALD_ENDPOINT:             "herald:4317"

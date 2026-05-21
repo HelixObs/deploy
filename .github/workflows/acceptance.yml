@@ -31,12 +31,6 @@ jobs:
           repository: HelixObs/mock-telescope
           path: repos/mock-telescope
 
-      - name: Check out client-python
-        uses: actions/checkout@v4
-        with:
-          repository: HelixObs/client-python
-          path: repos/client-python
-
       - name: Create bind-mount directories
         run: |
           sudo mkdir -p /data/db /data/prometheus /data/loki /data/tempo /data/grafana

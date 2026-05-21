@@ -129,6 +129,7 @@ services:
 
   # ── HelixObs gateway ──────────────────────────────────────────────────────────
   gateway:
+    image: ghcr.io/helixobs/gateway:latest
     build:
       context: ../gateway
     restart: unless-stopped
@@ -268,9 +269,9 @@ services:
 
   # ── Sherlock AI troubleshooting agent ────────────────────────────────────────
   sherlock:
+    image: ghcr.io/helixobs/sherlock:latest
     build:
-      context: ..
-      dockerfile: sherlock/Dockerfile
+      context: ../sherlock
     restart: unless-stopped
     environment:
       SHERLOCK_INSTRUMENTS_DIR: "/app/instruments"
@@ -286,6 +287,7 @@ services:
 
   # ── HelixObs UI ──────────────────────────────────────────────────────────────
   ui:
+    image: ghcr.io/helixobs/ui:latest
     build:
       context: ../ui
     restart: unless-stopped

@@ -167,6 +167,10 @@ services:
     mem_limit: 256m
     restart: unless-stopped
     command: ["--config=/etc/otel/config.yml"]
+    environment:
+      REMOTE_TEMPO_ENDPOINT: "${REMOTE_TEMPO_ENDPOINT:-http://tempo:4318}"
+      REMOTE_LOKI_ENDPOINT: "${REMOTE_LOKI_ENDPOINT:-http://loki:3100/otlp}"
+      REMOTE_LOKI_TENANT_ID: "${REMOTE_LOKI_TENANT_ID:-}"
     volumes:
       - ./otel-collector-config.yml:/etc/otel/config.yml:ro
     ports:

@@ -29,11 +29,11 @@ exporters:
   # idempotent for duplicate ingestion (Tempo deduplicates by trace ID; Loki rejects
   # exact-duplicate entries with 400 and does not store them twice).
   otlp_http/tempo_remote:
-    endpoint: ${REMOTE_TEMPO_ENDPOINT:-http://tempo:4318}
+    endpoint: ${REMOTE_TEMPO_ENDPOINT}
   otlp_http/loki_remote:
-    endpoint: ${REMOTE_LOKI_ENDPOINT:-http://loki:3100/otlp}
+    endpoint: ${REMOTE_LOKI_ENDPOINT}
     headers:
-      "X-Scope-OrgID": "${REMOTE_LOKI_TENANT_ID:-}"
+      "X-Scope-OrgID": "${REMOTE_LOKI_TENANT_ID}"
 
 extensions:
   health_check: {}

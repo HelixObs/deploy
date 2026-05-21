@@ -13,7 +13,7 @@ name: helixobs
 # Sherlock:    internal only (SSH tunnel: ssh -L 8082:localhost:8082 helixobs)
 # Grafana:     https://$HELIXOBS_DOMAIN:3001   (or http://localhost:3001)
 # Prometheus:  http://localhost:9091           (SSH tunnel in production)
-# Gateway:     $HELIXOBS_DOMAIN:4317           (gRPC+TLS in Phase 2; plaintext during Phase 1)
+# Herald:     $HELIXOBS_DOMAIN:4317           (gRPC+TLS in Phase 2; plaintext during Phase 1)
 # TimescaleDB: localhost:5432  (helix / helix / helixobs)
 
 volumes:

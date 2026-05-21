@@ -12,7 +12,7 @@ header() { echo; echo "── $* ───────────────�
 
 # ── Containers ────────────────────────────────────────────────────────────────
 header "Containers"
-EXPECTED=(db gateway grafana loki mock-telescope node-exporter
+EXPECTED=(db herald grafana loki mock-telescope node-exporter
           otel-collector prometheus sherlock tempo ui alloy)
 for svc in "${EXPECTED[@]}"; do
   name="helixobs-${svc}-1"
@@ -43,8 +43,8 @@ probe() {
   fi
 }
 
-probe "Gateway metrics"      http://localhost:2112/metrics            200
-probe "Gateway API (404→ok)" http://localhost:8080/api/v1/entity/x/graph 404 30
+probe "Herald metrics"      http://localhost:2112/metrics            200
+probe "Herald API (404→ok)" http://localhost:8080/api/v1/entity/x/graph 404 30
 probe "Sherlock health"      http://localhost:8082/health             200
 probe "Sherlock metrics"     http://localhost:9102/metrics            200
 probe "Prometheus UI"        http://localhost:9091/-/healthy          200
@@ -56,7 +56,7 @@ probe "Tempo"                http://localhost:3201/status             200
 # ── Prometheus scrape targets ─────────────────────────────────────────────────
 header "Prometheus scrape targets"
 targets=$(curl -sf http://localhost:9091/api/v1/targets 2>/dev/null || echo "{}")
-for job in gateway sherlock loki otel-collector tempo node; do
+for job in herald sherlock loki otel-collector tempo node; do
   health=$(echo "$targets" | python3 -c "
 import sys,json
 data=json.load(sys.stdin).get('data',{}).get('activeTargets',[])
@@ -124,8 +124,8 @@ else
   warn "only $ht_count hypertables (expected ≥4)"
 fi
 
-# ── Gateway metrics ───────────────────────────────────────────────────────────
-header "Gateway metrics"
+# ── Herald metrics ───────────────────────────────────────────────────────────
+header "Herald metrics"
 gw=$(curl -sf http://localhost:2112/metrics 2>/dev/null || echo "")
 
 check_metric() {

@@ -24,7 +24,7 @@ pytest -v -m "destructive"
 | Variable | Default | Used by |
 |---|---|---|
 | `DB_URL` | `postgres://helix:helix@localhost:5432/helixobs` | DB fixture |
-| `GATEWAY_URL` | `http://localhost:8080` | gateway fixture |
+| `HERALD_URL` | `http://localhost:8080` | herald fixture |
 | `SHERLOCK_URL` | `http://localhost:8082` | sherlock fixture |
 | `PROMETHEUS_URL` | `http://localhost:9091` | prometheus fixture |
 | `TEMPO_URL` | `http://localhost:3201` | infra tests |
@@ -36,7 +36,7 @@ pytest -v -m "destructive"
 
 | File | Marker | Tests |
 |---|---|---|
-| `test_gateway.py` | (none) | T1-01 to T1-15: entity ingestion, events, operations, dedup, metrics |
+| `test_herald.py` | (none) | T1-01 to T1-15: entity ingestion, events, operations, dedup, metrics |
 | `test_operations.py` | (none) | T1-17 to T1-19: entity_operations write path, placeholder upsert, dedup |
 | `test_sherlock.py` | `sherlock` | T1-20 to T1-24: streaming protocol, memory, reply endpoint, memory CRUD |
 | `test_regression.py` | mixed | T1-33 to T1-38: operation_trace_seen, graph API, CTE regression, Sherlock |
@@ -47,10 +47,10 @@ pytest -v -m "destructive"
 | Fixture | Scope | Description |
 |---|---|---|
 | `db_cursor` | session | psycopg2 cursor connected to TimescaleDB |
-| `gateway_client` | session | `requests.Session` pointed at gateway API |
+| `herald_client` | session | `requests.Session` pointed at herald API |
 | `sherlock_client` | session | `requests.Session` pointed at Sherlock |
 | `prometheus_client` | session | `requests.Session` pointed at Prometheus |
-| `instrument` | function | Real `Instrument` instance exporting to gateway via OTLP gRPC |
+| `instrument` | function | Real `Instrument` instance exporting to herald via OTLP gRPC |
 
 Helper functions in `conftest.py`:
 - `unique_id(prefix)` — generates a `prefix-<uuid>` string
@@ -68,9 +68,9 @@ Helper functions in `conftest.py`:
 
 ## Key design notes
 
-- Tests that check Prometheus counters query the gateway's `/metrics` endpoint directly
+- Tests that check Prometheus counters query the herald's `/metrics` endpoint directly
   (not Prometheus) to avoid the 15-second scrape lag.
 - Tests that check DB state after emitting spans always call `wait_for_entity()` first —
-  the gateway writes asynchronously in goroutines.
+  the herald writes asynchronously in goroutines.
 - The `instrument` fixture uses `BatchSpanProcessor` (same as production) with a short
   `schedule_delay_millis=100` to keep test latency low without polling.

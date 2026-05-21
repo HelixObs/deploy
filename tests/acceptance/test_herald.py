@@ -1,7 +1,7 @@
 """
-Gateway + DB correctness tests — T1-01 through T1-15.
+Herald + DB correctness tests — T1-01 through T1-15.
 
-Requires: full Docker Compose stack running, OTLP gateway reachable at localhost:4317.
+Requires: full Docker Compose stack running, OTLP herald reachable at localhost:4317.
 """
 
 import time
@@ -105,7 +105,7 @@ def test_T1_04_provenance_dag_query_correctness(instrument, db_cursor):
 
 # ── T1-05 ─────────────────────────────────────────────────────────────────────
 
-def test_T1_05_gateway_transparency_non_helix_spans(instrument, db_cursor):
+def test_T1_05_herald_transparency_non_helix_spans(instrument, db_cursor):
     # Emit a plain OTel span with no helix.* attributes
     # Capture the trace_id so we can verify no entity row was created for it
     tracer = instrument._tracer
@@ -264,7 +264,7 @@ def test_T1_13_prometheus_entity_counter(instrument, db_cursor):
     import httpx
     from conftest import HERALD_URL
 
-    # Query gateway's own /metrics endpoint (always current, no scrape delay)
+    # Query herald's own /metrics endpoint (always current, no scrape delay)
     metrics_url = HERALD_URL.replace(":8080", ":2112")
     def sum_metric(text, name, must_contain):
         total = 0.0

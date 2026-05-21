@@ -29,7 +29,7 @@ runcmd:
   # Clone all repos into /opt/helixobs (mirrors local layout for docker-compose context: ../X)
   - mkdir -p /opt/helixobs
   - git clone https://github.com/HelixObs/deploy         /opt/helixobs/deploy
-  - git clone https://github.com/HelixObs/gateway        /opt/helixobs/gateway
+  - git clone https://github.com/HelixObs/herald        /opt/helixobs/herald
   - git clone https://github.com/HelixObs/ui             /opt/helixobs/ui
   - git clone https://github.com/HelixObs/sherlock       /opt/helixobs/sherlock
   - git clone https://github.com/HelixObs/mock-telescope /opt/helixobs/mock-telescope
@@ -42,6 +42,6 @@ runcmd:
     ANTHROPIC_API_KEY=
     GITHUB_TOKEN=
     GRAFANA_URL=http://206.12.91.148:3001
-    GATEWAY_URL=http://206.12.91.148:8080
+    HERALD_URL=http://206.12.91.148:8080
     SHERLOCK_URL=http://206.12.91.148:8082
     ENV

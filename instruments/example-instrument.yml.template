@@ -2,7 +2,7 @@
 #
 # Copy this file to <your-instrument-id>-context.yml and fill in your values.
 # This file is gitignored by default — keep real credentials out of version control.
-# The gateway hot-reloads instrument configs every 30 seconds without a restart.
+# The herald hot-reloads instrument configs every 30 seconds without a restart.
 
 instrument_id: MY_INSTRUMENT      # short uppercase identifier; must match helix.instrument.id in spans
 description: "Human-readable description of the instrument or pipeline"
@@ -18,7 +18,7 @@ auth:
 # Option B — validate an existing JWT issued by your own auth service:
 # auth:
 #   type: token_introspection
-#   verify_url: "https://your-auth-service/auth/verify"   # gateway POSTs credential here; 200 = valid
+#   verify_url: "https://your-auth-service/auth/verify"   # herald POSTs credential here; 200 = valid
 
 # ── Prometheus metric names ───────────────────────────────────────────────────
 # Used by Sherlock when querying node metrics during root-cause analysis.
@@ -61,7 +61,7 @@ contacts:
 
 # ── Notifications ─────────────────────────────────────────────────────────────
 # Credentials are resolved from environment variables at runtime — never hardcode them here.
-# Changes take effect within 30 seconds without restarting the gateway.
+# Changes take effect within 30 seconds without restarting the herald.
 notifications:
   slack_webhook_env: "MY_INSTRUMENT_SLACK_WEBHOOK"   # env var → Slack webhook URL
   github_token_env:  "MY_INSTRUMENT_GITHUB_TOKEN"    # env var → GitHub PAT
@@ -98,4 +98,4 @@ agent_docs:
   - repo: https://github.com/your-org/your-pipeline-repo
   - repo: https://github.com/HelixObs/client-python
     paths: [AGENT.md, helixobs/AGENT.md]
-  - repo: https://github.com/HelixObs/gateway
+  - repo: https://github.com/HelixObs/herald

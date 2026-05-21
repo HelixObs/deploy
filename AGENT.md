@@ -6,7 +6,7 @@ run the platform locally or in CI lives here.
 ## What's here
 
 ```
-docker-compose.yml          Full stack: DB, gateway, OTel Collector, Sherlock, UI,
+docker-compose.yml          Full stack: DB, herald, OTel Collector, Sherlock, UI,
                             mock-telescope, Prometheus, Loki, Tempo, Grafana, Alloy, Caddy
 Caddyfile                   Caddy reverse proxy config — TLS termination for UI, Grafana, gRPC
 alloy-config.alloy          Grafana Alloy: scrapes stdout logs → Loki
@@ -22,7 +22,7 @@ grafana/
     datasources/            Auto-provisions Prometheus, Loki, Tempo datasources
     dashboards/             Auto-provisions dashboard JSON files from grafana/dashboards/
   dashboards/
-    platform_health.json    HelixObs Platform Health (Host + Gateway + Backends rows)
+    platform_health.json    HelixObs Platform Health (Host + Herald + Backends rows)
     sherlock_cost.json      Sherlock Cost (token usage, cost, latency, tool breakdown)
     entity_inspector.json   Entity Inspector (provenance graph, events timeline)
     error_entities.json     Error Entities (table of entities with helix.error)
@@ -42,15 +42,15 @@ tests/
 |---|---|---|
 | UI | 443 (HTTPS) | Caddy → ui:3000 |
 | Grafana | 3001 (HTTPS) | Caddy → grafana:3000; `admin` / `admin` |
-| Gateway (OTLP gRPC) | 4317 (plaintext, Phase 1) | Direct until CHIME switches to TLS |
+| Herald (OTLP gRPC) | 4317 (plaintext, Phase 1) | Direct until CHIME switches to TLS |
 | OTel Collector (gRPC logs) | 4319 (plaintext, Phase 1) | Direct until Phase 2 |
 
 ### Internal / SSH-tunnel only (no Arbutus security group rule)
 
 | Service | Host port | Notes |
 |---|---|---|
-| Gateway (API) | 8080 | `GET /api/v1/entity/{id}/graph` |
-| Gateway (metrics) | 2112 | Prometheus scrape target |
+| Herald (API) | 8080 | `GET /api/v1/entity/{id}/graph` |
+| Herald (metrics) | 2112 | Prometheus scrape target |
 | Sherlock | — | Docker-internal only; no host binding |
 | Sherlock (metrics) | 9102 | Prometheus scrape target |
 | Prometheus | 9091 | Query UI |
@@ -65,11 +65,11 @@ plaintext on 4317/4319. No CHIME-side changes needed.
 
 **Phase 2 (gRPC TLS):** Coordinate with CHIME to update their OTLP endpoint to TLS.
 1. Uncomment the gRPC blocks in `Caddyfile`.
-2. Remove `"4317:4317"` from `gateway` ports in `docker-compose.yml`.
+2. Remove `"4317:4317"` from `herald` ports in `docker-compose.yml`.
 3. Remove `"4319:4317"` from `otel-collector` ports in `docker-compose.yml`.
 4. Add `"4317:4317"` and `"4319:4319"` to `caddy` ports in `docker-compose.yml`.
-5. `docker compose up -d caddy gateway otel-collector`
-6. CHIME updates `GATEWAY_ENDPOINT=206-12-91-148.cloud.computecanada.ca:4317` (TLS, no `insecure=True`).
+5. `docker compose up -d caddy herald otel-collector`
+6. CHIME updates `HERALD_ENDPOINT=206-12-91-148.cloud.computecanada.ca:4317` (TLS, no `insecure=True`).
 7. Close plaintext 4317/4319 in Arbutus security group (already restricted to CHIME's IP range).
 
 **Production env vars** (set in shell or `/opt/helixobs/.env`):
@@ -88,9 +88,9 @@ the provisioning directory).
 Each panel has a `description` field visible as an info tooltip in Grafana.
 
 ### platform_health.json
-Four rows: Host (CPU/memory/disk/network), Gateway (ingestion rate, latency, parent
+Four rows: Host (CPU/memory/disk/network), Herald (ingestion rate, latency, parent
 resolution, DB writes, RSS, trace store, connection pool, error rate, resolution latency,
-store lookup latency), Backends (gateway uptime, OTel Collector, Loki, Tempo).
+store lookup latency), Backends (herald uptime, OTel Collector, Loki, Tempo).
 
 ### sherlock_cost.json
 Stat row (cost, queries, success rate, duration, tokens), timeseries rows (cumulative cost,
@@ -100,9 +100,9 @@ cost-per-query distribution), cost ledger table from TimescaleDB.
 ## Database migrations
 
 Migrations run automatically on first container start via `docker-entrypoint-initdb.d/`.
-They are mounted read-only from `../gateway/migrations/`. To add a new migration:
+They are mounted read-only from `../herald/migrations/`. To add a new migration:
 
-1. Create `gateway/migrations/00N_description.sql`.
+1. Create `herald/migrations/00N_description.sql`.
 2. Add a mount line in `docker-compose.yml` under the `db` service.
 3. The migration runs on the next `docker compose up` with a fresh volume (`down -v`).
 
@@ -119,16 +119,16 @@ docker compose up --build
 docker compose up --build
 # UI:     http://localhost — Caddy issues local CA cert for 'localhost'
 # Grafana: https://localhost:3001 (Caddy local CA)
-# Gateway: localhost:4317 (plaintext gRPC, unchanged for dev)
+# Herald: localhost:4317 (plaintext gRPC, unchanged for dev)
 
 # Caddy only (after code change):
 docker compose up -d caddy
 
 # Rebuild only one service:
-docker compose build gateway && docker compose up -d gateway
+docker compose build herald && docker compose up -d herald
 
 # Tail logs:
-docker compose logs -f gateway sherlock caddy
+docker compose logs -f herald sherlock caddy
 
 # Verify Caddy cert issuance:
 docker compose logs caddy | grep -i "certificate\|tls\|acme"
@@ -142,8 +142,8 @@ docker compose down -v
 | Variable | Required for | Notes |
 |---|---|---|
 | `HELIXOBS_DOMAIN` | Caddy TLS cert | Defaults to `localhost` (local CA cert) |
-| `UI_BASE_URL` | Gateway notification links | Full URL to UI; defaults to `http://localhost:8081` |
-| `GRAFANA_URL` | Gateway + Sherlock links | Full URL to Grafana; defaults to `http://localhost:3001` |
+| `UI_BASE_URL` | Herald notification links | Full URL to UI; defaults to `http://localhost:8081` |
+| `GRAFANA_URL` | Herald + Sherlock links | Full URL to Grafana; defaults to `http://localhost:3001` |
 | `ANTHROPIC_API_KEY` | Sherlock agent loop | Use a placeholder for non-Sherlock CI |
 | `GITHUB_TOKEN` | `fetch_github_*` tools | Optional — Sherlock works without it |
 

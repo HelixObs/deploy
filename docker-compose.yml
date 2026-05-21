@@ -144,7 +144,7 @@ services:
       CHIMEFRB_SLACK_WEBHOOK:  "${CHIMEFRB_SLACK_WEBHOOK:-}"
       CHIMEFRB_GITHUB_TOKEN:   "${CHIMEFRB_GITHUB_TOKEN:-}"
     volumes:
-      - ../instruments:/instruments:ro
+      - ./instruments:/instruments:ro
     ports:
       - "4317:4317"   # Phase 1: plaintext gRPC; Phase 2: remove when Caddy owns TLS termination
       - "2112:2112"   # Prometheus metrics
@@ -272,6 +272,8 @@ services:
       GATEWAY_DB_URL:           "postgres://helix:helix@db:5432/helixobs"
       GITHUB_TOKEN:             "${GITHUB_TOKEN:-}"
       GRAFANA_URL:              "${GRAFANA_URL:-http://localhost:3001}"
+    volumes:
+      - ./instruments:/app/instruments:ro
     ports:
       - "9102:9102"   # Prometheus metrics (SSH tunnel for external access)
     networks: [helix]

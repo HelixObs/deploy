@@ -14,6 +14,9 @@ otel-collector-config.yml   OTel Collector: receives OTLP → exports to Tempo +
 prometheus.yml              Prometheus scrape config (all services)
 loki-config.yml             Loki storage and ingestion config
 tempo-config.yml            Tempo storage config (5-min max block, 1 GB mem limit)
+instruments/
+  example-instrument.yml  Template — copy to <id>-context.yml, fill in values, do not commit
+  .gitignore              Ignores *.yml except example-instrument.yml
 grafana/
   provisioning/
     datasources/            Auto-provisions Prometheus, Loki, Tempo datasources

@@ -1,0 +1,101 @@
+# Example HelixObs instrument configuration.
+#
+# Copy this file to <your-instrument-id>-context.yml and fill in your values.
+# This file is gitignored by default — keep real credentials out of version control.
+# The gateway hot-reloads instrument configs every 30 seconds without a restart.
+
+instrument_id: MY_INSTRUMENT      # short uppercase identifier; must match helix.instrument.id in spans
+description: "Human-readable description of the instrument or pipeline"
+
+# ── Authentication ────────────────────────────────────────────────────────────
+# Remove the `auth` block entirely to disable auth for this instrument (dev mode).
+#
+# Option A — shared secret (simplest):
+auth:
+  type: secret
+  api_key_hash: "sha256:<hex>"    # sha256 of the shared secret; safe to commit
+
+# Option B — validate an existing JWT issued by your own auth service:
+# auth:
+#   type: token_introspection
+#   verify_url: "https://your-auth-service/auth/verify"   # gateway POSTs credential here; 200 = valid
+
+# ── Prometheus metric names ───────────────────────────────────────────────────
+# Used by Sherlock when querying node metrics during root-cause analysis.
+# Leave out any that don't apply to your cluster.
+prometheus:
+  node_memory: node_memory_MemAvailable_bytes
+  node_cpu:    rate(node_cpu_seconds_total{mode!="idle"}[5m])
+  host_label:  instance       # Prometheus label that identifies the host (e.g. rack_id, hostname)
+
+# ── Pipeline stage context ────────────────────────────────────────────────────
+# Provides Sherlock with known failure modes per stage to improve root-cause classification.
+pipeline:
+  stages:
+    - name: ingest
+      description: "Ingests raw data from the instrument"
+      known_failures:
+        - type: BUFFER_OVERFLOW
+          hint: "Check upstream data rate and ring buffer utilization."
+        - type: TIMESTAMP_MISMATCH
+          hint: "Timing source issue. Verify clock sync on ingestion nodes."
+
+    - name: process
+      description: "Applies calibration and reduction to raw data"
+      known_failures:
+        - type: CALIBRATION_MISSING
+          hint: "No valid calibration solution found for this time range."
+
+    - name: archive
+      description: "Writes processed data products to long-term storage"
+      known_failures:
+        - type: DISK_FULL
+          hint: "Check storage utilization. Retention policy may need adjustment."
+        - type: WRITE_TIMEOUT
+          hint: "Storage mount may be unresponsive. Check archive cluster health."
+
+# ── Contacts ─────────────────────────────────────────────────────────────────
+contacts:
+  oncall:     "@your-oncall-handle"
+  escalation: "@your-escalation-handle"
+
+# ── Notifications ─────────────────────────────────────────────────────────────
+# Credentials are resolved from environment variables at runtime — never hardcode them here.
+# Changes take effect within 30 seconds without restarting the gateway.
+notifications:
+  slack_webhook_env: "MY_INSTRUMENT_SLACK_WEBHOOK"   # env var → Slack webhook URL
+  github_token_env:  "MY_INSTRUMENT_GITHUB_TOKEN"    # env var → GitHub PAT
+
+  events:
+
+    helix.error:
+      # Optional Go template over event Metadata fields:
+      # message_template: "{{.stage}}: {{.message}}"
+      slack:
+        channel: "#your-alerts-channel"
+        # webhook_env: "MY_INSTRUMENT_ERRORS_WEBHOOK"  # per-event override
+        sample_window_seconds: 600    # at most max_per_window messages per fingerprint per window
+        max_per_window: 1
+      github:
+        repo: "your-org/your-repo"
+        labels: ["helixobs", "bug"]
+        auto_close_after_days: 7
+        on_recurrence_after_close: reopen   # or "new_issue"
+
+    # Example: custom science event — Slack only, high volume allowed.
+    # helix.event.detection_confirmed:
+    #   message_template: "Detection confirmed: score={{.score}}"
+    #   slack:
+    #     channel: "#detections"
+    #     webhook_env: "MY_INSTRUMENT_DETECTIONS_WEBHOOK"
+    #     sample_window_seconds: 60
+    #     max_per_window: 100
+
+# ── Sherlock agent context ────────────────────────────────────────────────────
+# AGENT.md files Sherlock fetches from GitHub for architectural context.
+# Each entry is a GitHub repo; paths defaults to [AGENT.md] if omitted.
+agent_docs:
+  - repo: https://github.com/your-org/your-pipeline-repo
+  - repo: https://github.com/HelixObs/client-python
+    paths: [AGENT.md, helixobs/AGENT.md]
+  - repo: https://github.com/HelixObs/gateway

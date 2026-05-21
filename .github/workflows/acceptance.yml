@@ -50,10 +50,13 @@ jobs:
           path: repos/client-python
 
       - name: Create bind-mount directories
-        run: sudo mkdir -p /data/db /data/prometheus /data/loki /data/tempo /data/grafana
+        run: |
+          sudo mkdir -p /data/db /data/prometheus /data/loki /data/tempo /data/grafana
+          # Placeholder replay file — mock-telescope falls back to random mode when empty
+          echo "[]" > repos/l1_headers.json
 
       - name: Start Docker Compose stack
-        run: docker compose up -d --build
+        run: docker compose -f docker-compose.yml -f docker-compose.mock-telescope.yml up -d --build
         env:
           ANTHROPIC_API_KEY: placeholder
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -95,8 +98,8 @@ jobs:
 
       - name: Dump logs on failure
         if: failure()
-        run: docker compose logs --tail=100
+        run: docker compose -f docker-compose.yml -f docker-compose.mock-telescope.yml logs --tail=100
 
       - name: Tear down stack
         if: always()
-        run: docker compose down -v
+        run: docker compose -f docker-compose.yml -f docker-compose.mock-telescope.yml down -v

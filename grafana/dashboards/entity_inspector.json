@@ -473,7 +473,7 @@
     }
   ],
   "preload": false,
-  "refresh": "30s",
+  "refresh": "",
   "schemaVersion": 42,
   "tags": [
     "helixobs",

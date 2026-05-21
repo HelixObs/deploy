@@ -926,7 +926,7 @@
       "description": "Traces received by Tempo and blocks flushed to storage. Block flushes complete a trace's lifecycle; a growing gap between received and flushed indicates flush lag."
     }
   ],
-  "refresh": "30s",
+  "refresh": "15m",
   "schemaVersion": 39,
   "tags": [
     "helixobs",

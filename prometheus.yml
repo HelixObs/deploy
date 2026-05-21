@@ -1,6 +1,13 @@
 global:
   scrape_interval: 15s
 
+# Optional remote metrics forwarding (e.g. to Mimir or a shared Prometheus).
+# Uncomment and set REMOTE_METRICS_URL in the environment to enable.
+# remote_write:
+#   - url: "${REMOTE_METRICS_URL}"
+#     headers:
+#       "X-Scope-OrgID": "${REMOTE_METRICS_TENANT_ID:-}"
+
 scrape_configs:
   - job_name: gateway
     static_configs:

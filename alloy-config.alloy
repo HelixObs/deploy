@@ -46,12 +46,23 @@ loki.process "helix_json" {
     }
   }
 
-  forward_to = [loki.write.default.receiver]
+  forward_to = [loki.write.default.receiver, loki.write.remote.receiver]
 }
 
 // Write to the Loki instance in the same compose network.
 loki.write "default" {
   endpoint {
     url = "http://loki:3100/loki/api/v1/push"
+  }
+}
+
+// Optional remote Loki forwarding.
+// Set REMOTE_LOKI_URL in the environment to forward logs to an additional Loki instance.
+// REMOTE_LOKI_URL defaults to the local Loki when unset — Loki rejects exact duplicates
+// with 400 and does not store them twice, so the no-op case is harmless.
+loki.write "remote" {
+  endpoint {
+    url       = env("REMOTE_LOKI_URL")
+    tenant_id = env("REMOTE_LOKI_TENANT_ID")
   }
 }

@@ -1,3 +1,5 @@
+file_format: "0.0.1"
+
 receivers:
   otlp:
     protocols:
@@ -12,12 +14,26 @@ processors:
           - set(attributes["level"], ConvertCase(severity_text, "lower")) where severity_text != nil
 
 exporters:
+  # ── Local stack ───────────────────────────────────────────────────────────────
   otlp_http:
     endpoint: http://tempo:4318
   otlp_http/loki:
     endpoint: http://loki:3100/otlp
   debug:
     verbosity: basic
+
+  # ── Optional remote forwarding ────────────────────────────────────────────────
+  # Set REMOTE_TEMPO_ENDPOINT / REMOTE_LOKI_ENDPOINT in the environment to forward
+  # signals to an additional backend (e.g. a shared observability platform).
+  # When unset, both default to the local instance — harmless: Tempo and Loki are
+  # idempotent for duplicate ingestion (Tempo deduplicates by trace ID; Loki rejects
+  # exact-duplicate entries with 400 and does not store them twice).
+  otlp_http/tempo_remote:
+    endpoint: ${REMOTE_TEMPO_ENDPOINT:-http://tempo:4318}
+  otlp_http/loki_remote:
+    endpoint: ${REMOTE_LOKI_ENDPOINT:-http://loki:3100/otlp}
+    headers:
+      "X-Scope-OrgID": "${REMOTE_LOKI_TENANT_ID:-}"
 
 extensions:
   health_check: {}
@@ -38,8 +54,8 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
-      exporters: [otlp_http, debug]
+      exporters: [otlp_http, otlp_http/tempo_remote, debug]
     logs:
       receivers: [otlp]
       processors: [transform/lowercase_level]
-      exporters: [otlp_http/loki]
+      exporters: [otlp_http/loki, otlp_http/loki_remote]

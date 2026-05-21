@@ -147,6 +147,19 @@ docker compose down -v
 | `ANTHROPIC_API_KEY` | Sherlock agent loop | Use a placeholder for non-Sherlock CI |
 | `GITHUB_TOKEN` | `fetch_github_*` tools | Optional — Sherlock works without it |
 
+## Optional remote forwarding
+
+Set these in `.env` on the production host to forward signals to an additional backend.
+When unset the stack operates entirely locally — all variables are optional.
+
+| Variable | Service | Description |
+|---|---|---|
+| `REMOTE_TEMPO_ENDPOINT` | OTel Collector | OTLP HTTP endpoint for remote trace storage (e.g. `https://tempo.example.com`) |
+| `REMOTE_LOKI_ENDPOINT` | OTel Collector | OTLP HTTP endpoint for remote log storage — OTLP path (e.g. `https://loki.example.com`) |
+| `REMOTE_LOKI_TENANT_ID` | OTel Collector + Alloy | `X-Scope-OrgID` / tenant ID sent with remote Loki pushes |
+| `REMOTE_LOKI_URL` | Alloy | Loki push API URL for sidecar-collected logs (e.g. `https://loki.example.com/loki/api/v1/push`) |
+| `REMOTE_METRICS_URL` | Prometheus | Remote write URL for metrics (e.g. Mimir). Uncomment `remote_write` in `prometheus.yml` to enable. |
+
 ## Adding a new service
 
 1. Add a service block in `docker-compose.yml` on the `helix` network.

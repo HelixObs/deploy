@@ -253,6 +253,11 @@ services:
     mem_limit: 128m
     command: run --server.http.listen-addr=0.0.0.0:12345 /etc/alloy/config.alloy
     restart: always
+    environment:
+      # Set these in .env to forward sidecar logs to a remote Loki instance.
+      # Defaults to local Loki when unset (harmless — Loki deduplicates exact entries).
+      REMOTE_LOKI_URL:       "${REMOTE_LOKI_URL:-http://loki:3100/loki/api/v1/push}"
+      REMOTE_LOKI_TENANT_ID: "${REMOTE_LOKI_TENANT_ID:-}"
     volumes:
       - ./alloy-config.alloy:/etc/alloy/config.alloy:ro
       - /var/run/docker.sock:/var/run/docker.sock

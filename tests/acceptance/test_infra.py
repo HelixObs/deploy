@@ -26,6 +26,8 @@ EXPECTED_TABLES = {
     "instrument_memory",
     "operation_trace_seen",
     "sherlock_usage",
+    "notification_issues",
+    "notification_silences",
 }
 
 EXPECTED_HYPERTABLES = {

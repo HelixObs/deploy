@@ -21,17 +21,15 @@ exporters:
     verbosity: basic
 
   # ── Optional remote forwarding ────────────────────────────────────────────────
-  # Set REMOTE_TEMPO_ENDPOINT / REMOTE_LOKI_ENDPOINT in the environment to forward
-  # signals to an additional backend (e.g. a shared observability platform).
-  # When unset, both default to the local instance — harmless: Tempo and Loki are
-  # idempotent for duplicate ingestion (Tempo deduplicates by trace ID; Loki rejects
-  # exact-duplicate entries with 400 and does not store them twice).
-  otlp_http/tempo_remote:
-    endpoint: ${REMOTE_TEMPO_ENDPOINT}
-  otlp_http/loki_remote:
-    endpoint: ${REMOTE_LOKI_ENDPOINT}
-    headers:
-      "X-Scope-OrgID": "${REMOTE_LOKI_TENANT_ID}"
+  # To forward signals to an additional backend, set REMOTE_TEMPO_ENDPOINT and/or
+  # REMOTE_LOKI_ENDPOINT in .env, then uncomment the relevant exporter(s) below
+  # AND add them to the traces/logs pipeline exporters lists below.
+  # otlp_http/tempo_remote:
+  #   endpoint: ${REMOTE_TEMPO_ENDPOINT}
+  # otlp_http/loki_remote:
+  #   endpoint: ${REMOTE_LOKI_ENDPOINT}
+  #   headers:
+  #     "X-Scope-OrgID": "${REMOTE_LOKI_TENANT_ID}"
 
 extensions:
   health_check: {}
@@ -52,8 +50,8 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
-      exporters: [otlp_http, otlp_http/tempo_remote, debug]
+      exporters: [otlp_http, debug]
     logs:
       receivers: [otlp]
       processors: [transform/lowercase_level]
-      exporters: [otlp_http/loki, otlp_http/loki_remote]
+      exporters: [otlp_http/loki]

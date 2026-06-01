@@ -42,7 +42,7 @@ limits_config:
           regex: ".*"
     log_attributes:
       - action: index_label
-        attributes: [helix_instrument_id, level, trace_id]
+        attributes: [helix_instrument_id, helix_process_name, level, trace_id]
       - action: structured_metadata
         regex: ".*"
 

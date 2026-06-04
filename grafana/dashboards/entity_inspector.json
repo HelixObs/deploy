@@ -293,51 +293,6 @@
     },
     {
       "datasource": {
-        "type": "loki",
-        "uid": "loki"
-      },
-      "description": "All logs tagged with this entity's ID across all traces.",
-      "gridPos": {
-        "h": 13,
-        "w": 12,
-        "x": 12,
-        "y": 9
-      },
-      "id": 9,
-      "options": {
-        "dedupStrategy": "none",
-        "enableInfiniteScrolling": false,
-        "enableLogDetails": true,
-        "liveNow": false,
-        "prettifyLogMessage": false,
-        "showCommonLabels": false,
-        "showControls": true,
-        "showLabels": false,
-        "showTime": true,
-        "sortOrder": "Descending",
-        "unwrappedColumns": false,
-        "wrapLogMessage": true
-      },
-      "pluginVersion": "12.4.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
-          "direction": "backward",
-          "editorMode": "code",
-          "expr": "{helix_instrument_id=\"$instrument_id\"} | helix_entity_id = `$entity_id`",
-          "queryType": "range",
-          "refId": "A"
-        }
-      ],
-      "title": "Entity Logs",
-      "type": "logs",
-      "timeFrom": "1d"
-    },
-    {
-      "datasource": {
         "type": "tempo",
         "uid": "tempo"
       },

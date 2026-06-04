@@ -171,7 +171,7 @@
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "occurrences" },
+            "matcher": { "id": "byName", "options": "entities_affected" },
             "properties": [
               {
                 "id": "custom.cellOptions",
@@ -223,14 +223,14 @@
         "cellHeight": "sm",
         "footer": { "show": false },
         "showHeader": true,
-        "sortBy": [{ "desc": true, "displayName": "occurrences" }]
+        "sortBy": [{ "desc": true, "displayName": "entities_affected" }]
       },
       "targets": [
         {
           "datasource": { "type": "grafana-postgresql-datasource", "uid": "timescaledb" },
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT\n  COALESCE(d.normalised_message, '(no message)')  AS error_message,\n  d.metadata->>'stage'                             AS stage,\n  d.instrument_id,\n  SUM(d.occurrence_count)                          AS occurrences,\n  MAX(d.last_seen_at)                              AS last_seen\nFROM entity_event_dedup d\nWHERE d.event_name = 'helix.error'\n  AND $__timeFilter(d.last_seen_at)\n  AND d.instrument_id ILIKE CASE WHEN '${instrument_id}' IN ('All', '$__all') THEN '%' ELSE '${instrument_id}' END\nGROUP BY d.normalised_message, d.metadata->>'stage', d.instrument_id\nORDER BY occurrences DESC\nLIMIT 100",
+          "rawSql": "SELECT\n  COALESCE(d.normalised_message, '(no message)')  AS error_message,\n  d.metadata->>'stage'                             AS stage,\n  d.instrument_id,\n  COUNT(*)                                         AS entities_affected,\n  MAX(d.last_seen_at)                              AS last_seen\nFROM entity_event_dedup d\nWHERE d.event_name = 'helix.error'\n  AND $__timeFilter(d.last_seen_at)\n  AND d.instrument_id ILIKE CASE WHEN '${instrument_id}' IN ('All', '$__all') THEN '%' ELSE '${instrument_id}' END\nGROUP BY d.normalised_message, d.metadata->>'stage', d.instrument_id\nORDER BY entities_affected DESC\nLIMIT 100",
           "refId": "A"
         }
       ],
@@ -272,5 +272,5 @@
   "timezone": "browser",
   "title": "Error Entities",
   "uid": "helix-error-entities",
-  "version": 3
+  "version": 4
 }

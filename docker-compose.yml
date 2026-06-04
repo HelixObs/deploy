@@ -178,7 +178,7 @@ services:
   # ── Tempo (trace storage) ─────────────────────────────────────────────────────
   tempo:
     image: grafana/tempo:2.6.1
-    mem_limit: 2g
+    mem_limit: 4g
     restart: unless-stopped
     command: ["-config.file=/etc/tempo/config.yml"]
     volumes:

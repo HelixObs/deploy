@@ -20,7 +20,7 @@ ingester:
 compactor:
   compaction:
     # Only compact 2 blocks at a time — limits peak RAM during merge.
-    max_compaction_objects: 2000000
+    max_compaction_objects: 200000
     # Keep traces for 24 hours then delete.
     block_retention: 2160h
 

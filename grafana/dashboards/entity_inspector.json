@@ -282,7 +282,7 @@
           },
           "direction": "backward",
           "editorMode": "code",
-          "expr": "{helix_instrument_id=\"$instrument_id\"} | trace_id = `$active_trace_id`",
+          "expr": "{helix_instrument_id=\"$instrument_id\", helix_process_name=~\"$process_name\"} | trace_id = `$active_trace_id`",
           "queryType": "range",
           "refId": "A"
         }
@@ -327,7 +327,7 @@
           },
           "direction": "backward",
           "editorMode": "code",
-          "expr": "{helix_instrument_id=\"$instrument_id\"} | helix_entity_id = `$entity_id`",
+          "expr": "{helix_instrument_id=\"$instrument_id\", helix_process_name=~\"$process_name\"} | helix_entity_id = `$entity_id`",
           "queryType": "range",
           "refId": "A"
         }
@@ -508,6 +508,18 @@
         "label": "Instrument",
         "name": "instrument_id",
         "query": "SELECT instrument_id FROM entities WHERE id = '$entity_id' LIMIT 1",
+        "refresh": 2,
+        "type": "query"
+      },
+      {
+        "current": { "text": ".*", "value": ".*" },
+        "datasource": { "type": "grafana-postgresql-datasource", "uid": "timescaledb" },
+        "definition": "SELECT COALESCE(NULLIF(metadata->>'helix.process.name', ''), '.*') FROM entities WHERE id = '$entity_id' LIMIT 1",
+        "description": "Process name stream label \u2014 narrows Loki scan to one process; falls back to .* when entity has no process name",
+        "hide": 2,
+        "label": "Process",
+        "name": "process_name",
+        "query": "SELECT COALESCE(NULLIF(metadata->>'helix.process.name', ''), '.*') FROM entities WHERE id = '$entity_id' LIMIT 1",
         "refresh": 2,
         "type": "query"
       },

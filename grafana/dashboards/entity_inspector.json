@@ -282,14 +282,14 @@
           },
           "direction": "backward",
           "editorMode": "code",
-          "expr": "{helix_instrument_id=\"$instrument_id\", helix_process_name=~\"$process_name\"} | trace_id = `$active_trace_id`",
+          "expr": "{helix_instrument_id=\"$instrument_id\"} | trace_id = `$active_trace_id`",
           "queryType": "range",
           "refId": "A"
         }
       ],
       "title": "Trace Logs",
       "type": "logs",
-      "timeFrom": "90d"
+      "timeFrom": "1d"
     },
     {
       "datasource": {
@@ -327,14 +327,14 @@
           },
           "direction": "backward",
           "editorMode": "code",
-          "expr": "{helix_instrument_id=\"$instrument_id\", helix_process_name=~\"$process_name\"} | helix_entity_id = `$entity_id`",
+          "expr": "{helix_instrument_id=\"$instrument_id\"} | helix_entity_id = `$entity_id`",
           "queryType": "range",
           "refId": "A"
         }
       ],
       "title": "Entity Logs",
       "type": "logs",
-      "timeFrom": "90d"
+      "timeFrom": "1d"
     },
     {
       "datasource": {
@@ -500,26 +500,20 @@
         "type": "textbox"
       },
       {
-        "current": { "text": "", "value": "" },
-        "datasource": { "type": "grafana-postgresql-datasource", "uid": "timescaledb" },
+        "current": {
+          "text": "",
+          "value": ""
+        },
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "timescaledb"
+        },
         "definition": "SELECT instrument_id FROM entities WHERE id = '$entity_id' LIMIT 1",
         "description": "Instrument that owns this entity \u2014 used to scope Loki log queries",
         "hide": 2,
         "label": "Instrument",
         "name": "instrument_id",
         "query": "SELECT instrument_id FROM entities WHERE id = '$entity_id' LIMIT 1",
-        "refresh": 2,
-        "type": "query"
-      },
-      {
-        "current": { "text": ".*", "value": ".*" },
-        "datasource": { "type": "grafana-postgresql-datasource", "uid": "timescaledb" },
-        "definition": "SELECT COALESCE(NULLIF(metadata->>'helix.process.name', ''), '.*') FROM entities WHERE id = '$entity_id' LIMIT 1",
-        "description": "Process name stream label \u2014 narrows Loki scan to one process; falls back to .* when entity has no process name",
-        "hide": 2,
-        "label": "Process",
-        "name": "process_name",
-        "query": "SELECT COALESCE(NULLIF(metadata->>'helix.process.name', ''), '.*') FROM entities WHERE id = '$entity_id' LIMIT 1",
         "refresh": 2,
         "type": "query"
       },

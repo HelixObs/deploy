@@ -61,7 +61,6 @@ bloom_build:
     planner_address: "127.0.0.1:9096"
   planner:
     planning_interval: 5m
-    max_lookback_periods: 90
 
 bloom_gateway:
   enabled: true

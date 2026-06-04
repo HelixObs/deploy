@@ -192,7 +192,7 @@ services:
   # ── Loki (log storage) ────────────────────────────────────────────────────────
   loki:
     image: grafana/loki:latest
-    mem_limit: 512m
+    mem_limit: 1536m
     restart: unless-stopped
     command: ["-config.file=/etc/loki/config.yml"]
     volumes:

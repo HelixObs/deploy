@@ -254,7 +254,7 @@
       "description": "Logs for the selected trace. Click a trace_id row in the Trace table to switch.",
       "gridPos": {
         "h": 13,
-        "w": 12,
+        "w": 24,
         "x": 0,
         "y": 9
       },

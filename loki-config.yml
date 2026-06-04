@@ -57,20 +57,13 @@ compactor:
 # | trace_id = `...` skip non-matching chunks instead of doing a full scan.
 bloom_build:
   enabled: true
-  builder:
-    planner:
-      bloom_split_series_keyspace_by: 256
 
 bloom_gateway:
   enabled: true
-  client:
-    addresses: "127.0.0.1:9096"
 
 storage_config:
   bloom_shipper:
     working_directory: /loki/bloom
-    blocks_downloading_queue:
-      workers_count: 2
 
 schema_config:
   configs:

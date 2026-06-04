@@ -77,7 +77,7 @@
                   {
                     "targetBlank": false,
                     "title": "View in span tree",
-                    "url": "/d/helix-entity-inspector?var-entity_id=${entity_id}&var-active_trace_id=${__data.fields.trace_id}&${__url_time_range}"
+                    "url": "/d/helix-entity-inspector?var-entity_id=${entity_id}&var-active_trace_id=${__data.fields.trace_id}&from=${__data.fields.time}&to=now"
                   }
                 ]
               }
@@ -288,8 +288,7 @@
         }
       ],
       "title": "Trace Logs",
-      "type": "logs",
-      "timeFrom": "1d"
+      "type": "logs"
     },
     {
       "datasource": {

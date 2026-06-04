@@ -65,7 +65,6 @@ bloom_gateway:
   enabled: true
   client:
     addresses: "127.0.0.1:9096"
-    cache_results: true
 
 storage_config:
   bloom_shipper:

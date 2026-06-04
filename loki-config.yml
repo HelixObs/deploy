@@ -29,6 +29,7 @@ limits_config:
   ingestion_burst_size_mb: 64
   reject_old_samples: false
   retention_period: 2160h
+  bloom_gateway_enable_filtering: true
   # OTLP log ingestion: restrict which attributes become stream labels.
   # Mirrors the Alloy pipeline which promotes only helix_instrument_id and level.
   # helix_entity_id is intentionally excluded — one stream per entity exhausts
@@ -50,6 +51,23 @@ compactor:
   working_directory: /loki/compactor
   retention_enabled: true
   delete_request_store: filesystem
+
+# Bloom filters for fast structured metadata queries (trace_id, helix_entity_id).
+# bloom-planner, bloom-builder, bloom-gateway are added to the target in docker-compose.
+# After restart the builder backfills existing chunks in the background (~1-2h).
+bloom_build:
+  enabled: true
+  builder:
+    planner_address: "127.0.0.1:9096"
+
+bloom_gateway:
+  enabled: true
+  client:
+    addresses: "127.0.0.1:9096"
+
+storage_config:
+  bloom_shipper:
+    working_directory: /loki/bloom
 
 schema_config:
   configs:

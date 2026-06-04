@@ -95,7 +95,7 @@
           "datasource": { "type": "grafana-postgresql-datasource", "uid": "timescaledb" },
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT\n  d.entity_id,\n  d.instrument_id,\n  SUM(d.occurrence_count)                             AS error_count,\n  MAX(d.last_seen_at)                                 AS last_error_at,\n  MIN(d.first_seen_at)                                AS first_error_at,\n  jsonb_agg(d.metadata ORDER BY d.last_seen_at DESC)  AS error_details\nFROM entity_event_dedup d\nWHERE d.event_name = 'helix.error'\n  AND $__timeFilter(d.last_seen_at)\n  AND ('${error_message}' = '' OR d.normalised_message = '${error_message}')\nGROUP BY d.entity_id, d.instrument_id\nORDER BY last_error_at DESC\nLIMIT 200",
+          "rawSql": "SELECT\n  d.entity_id,\n  SUM(d.occurrence_count)                             AS error_count,\n  MAX(d.last_seen_at)                                 AS last_error_at,\n  MIN(d.first_seen_at)                                AS first_error_at,\n  jsonb_agg(d.metadata ORDER BY d.last_seen_at DESC)  AS error_details\nFROM entity_event_dedup d\nWHERE d.event_name = 'helix.error'\n  AND $__timeFilter(d.last_seen_at)\n  AND ('${error_message}' = '' OR d.normalised_message = '${error_message}')\nGROUP BY d.entity_id, d.instrument_id\nORDER BY last_error_at DESC\nLIMIT 200",
           "refId": "A"
         }
       ],
@@ -230,7 +230,7 @@
           "datasource": { "type": "grafana-postgresql-datasource", "uid": "timescaledb" },
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT\n  COALESCE(d.normalised_message, '(no message)')  AS error_message,\n  d.metadata->>'stage'                             AS stage,\n  d.instrument_id,\n  COUNT(*)                                         AS entities_affected,\n  MAX(d.last_seen_at)                              AS last_seen\nFROM entity_event_dedup d\nWHERE d.event_name = 'helix.error'\n  AND $__timeFilter(d.last_seen_at)\n  AND d.instrument_id ILIKE CASE WHEN '${instrument_id}' IN ('All', '$__all') THEN '%' ELSE '${instrument_id}' END\nGROUP BY d.normalised_message, d.metadata->>'stage', d.instrument_id\nORDER BY entities_affected DESC\nLIMIT 100",
+          "rawSql": "SELECT\n  COALESCE(d.normalised_message, '(no message)')  AS error_message,\n  d.metadata->>'stage'                             AS stage,\n  COUNT(*)                                         AS entities_affected,\n  MAX(d.last_seen_at)                              AS last_seen\nFROM entity_event_dedup d\nWHERE d.event_name = 'helix.error'\n  AND $__timeFilter(d.last_seen_at)\n  AND d.instrument_id ILIKE CASE WHEN '${instrument_id}' IN ('All', '$__all') THEN '%' ELSE '${instrument_id}' END\nGROUP BY d.normalised_message, d.metadata->>'stage', d.instrument_id\nORDER BY entities_affected DESC\nLIMIT 100",
           "refId": "A"
         }
       ],
@@ -272,5 +272,5 @@
   "timezone": "browser",
   "title": "Error Entities",
   "uid": "helix-error-entities",
-  "version": 4
+  "version": 5
 }

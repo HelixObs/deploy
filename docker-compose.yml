@@ -194,7 +194,7 @@ services:
     image: grafana/loki:latest
     mem_limit: 1536m
     restart: unless-stopped
-    command: ["-config.file=/etc/loki/config.yml", "-target=all,bloom-planner,bloom-builder,bloom-gateway"]
+    command: ["-config.file=/etc/loki/config.yml"]
     volumes:
       - ./loki-config.yml:/etc/loki/config.yml:ro
       - loki-data:/loki

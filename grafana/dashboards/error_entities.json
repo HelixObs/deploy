@@ -95,7 +95,7 @@
           "datasource": { "type": "grafana-postgresql-datasource", "uid": "timescaledb" },
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT\n  d.entity_id,\n  d.instrument_id,\n  SUM(d.occurrence_count)                             AS error_count,\n  MAX(d.last_seen_at)                                 AS last_error_at,\n  MIN(d.first_seen_at)                                AS first_error_at,\n  jsonb_agg(d.metadata ORDER BY d.last_seen_at DESC)  AS error_details\nFROM entity_event_dedup d\nWHERE d.event_name = 'helix.error'\n  AND $__timeFilter(d.last_seen_at)\nGROUP BY d.entity_id, d.instrument_id\nORDER BY last_error_at DESC\nLIMIT 200",
+          "rawSql": "SELECT\n  d.entity_id,\n  d.instrument_id,\n  SUM(d.occurrence_count)                             AS error_count,\n  MAX(d.last_seen_at)                                 AS last_error_at,\n  MIN(d.first_seen_at)                                AS first_error_at,\n  jsonb_agg(d.metadata ORDER BY d.last_seen_at DESC)  AS error_details\nFROM entity_event_dedup d\nWHERE d.event_name = 'helix.error'\n  AND $__timeFilter(d.last_seen_at)\n  AND ('${error_message}' = '' OR d.normalised_message = '${error_message}')\nGROUP BY d.entity_id, d.instrument_id\nORDER BY last_error_at DESC\nLIMIT 200",
           "refId": "A"
         }
       ],
@@ -194,7 +194,25 @@
           {
             "matcher": { "id": "byName", "options": "error_message" },
             "properties": [
-              { "id": "custom.width", "value": 500 }
+              { "id": "custom.width", "value": 500 },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": false,
+                    "title": "Filter entities by this error",
+                    "url": "/d/helix-error-entities/error-entities?var-error_message=${__value.raw}&${__url_time_range}&var-instrument_id=${instrument_id}"
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": { "type": "color-text" }
+              },
+              {
+                "id": "color",
+                "value": { "fixedColor": "blue", "mode": "fixed" }
+              }
             ]
           }
         ]
@@ -237,6 +255,15 @@
         "refresh": 2,
         "skipUrlSync": false,
         "type": "query"
+      },
+      {
+        "current": { "selected": false, "text": "", "value": "" },
+        "hide": 0,
+        "label": "Error",
+        "name": "error_message",
+        "query": "",
+        "skipUrlSync": false,
+        "type": "textbox"
       }
     ]
   },
@@ -245,5 +272,5 @@
   "timezone": "browser",
   "title": "Error Entities",
   "uid": "helix-error-entities",
-  "version": 2
+  "version": 3
 }

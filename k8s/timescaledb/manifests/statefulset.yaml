@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: timescaledb
+  namespace: helixobs
+spec:
+  serviceName: timescaledb
+  replicas: 1
+  selector:
+    matchLabels:
+      app: timescaledb
+  template:
+    metadata:
+      labels:
+        app: timescaledb
+    spec:
+      nodeSelector:
+        directpv.min.io/node: worker4
+      containers:
+        - name: timescaledb
+          image: timescale/timescaledb:latest-pg16
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - secretRef:
+                name: timescaledb-credentials
+          env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          args:
+            - postgres
+            - -c
+            - shared_buffers=2GB
+            - -c
+            - work_mem=32MB
+            - -c
+            - maintenance_work_mem=256MB
+            - -c
+            - effective_cache_size=6GB
+            - -c
+            - max_connections=200
+          resources:
+            requests:
+              cpu: "1"
+              memory: 2Gi
+            limits:
+              cpu: "4"
+              memory: 8Gi
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "helix", "-d", "helixobs"]
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 5
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "helix", "-d", "helixobs"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: timescaledb-data

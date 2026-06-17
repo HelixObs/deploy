@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metrics-scraper
+  namespace: helixobs
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: metrics-scraper
+  template:
+    metadata:
+      labels:
+        app: metrics-scraper
+    spec:
+      containers:
+        - name: alloy
+          image: grafana/alloy:latest
+          args:
+            - run
+            - --server.http.listen-addr=0.0.0.0:12345
+            - /etc/alloy/config.alloy
+          ports:
+            - containerPort: 12345
+              name: http
+          resources:
+            requests:
+              cpu: "50m"
+              memory: 64Mi
+            limits:
+              cpu: "200m"
+              memory: 128Mi
+          volumeMounts:
+            - name: config
+              mountPath: /etc/alloy
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: metrics-scraper-config

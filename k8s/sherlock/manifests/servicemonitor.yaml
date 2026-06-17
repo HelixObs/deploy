@@ -1,0 +1,15 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: sherlock
+  namespace: helixobs
+  labels:
+    app: sherlock
+spec:
+  selector:
+    matchLabels:
+      app: sherlock
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 15s

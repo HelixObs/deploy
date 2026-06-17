@@ -1,0 +1,15 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: herald
+  namespace: helixobs
+  labels:
+    app: herald
+spec:
+  selector:
+    matchLabels:
+      app: herald
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 15s

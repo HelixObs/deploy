@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sherlock
+  namespace: helixobs
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sherlock
+  template:
+    metadata:
+      labels:
+        app: sherlock
+    spec:
+      containers:
+        - name: sherlock
+          image: ghcr.io/helixobs/sherlock:latest
+          ports:
+            - containerPort: 8082
+              name: api
+            - containerPort: 9102
+              name: metrics
+          env:
+            - name: SHERLOCK_INSTRUMENTS_DIR
+              value: "/app/instruments"
+            - name: HERALD_URL
+              value: "http://herald.helixobs.svc.cluster.local:8080"
+            - name: HERALD_DB_URL
+              value: "postgres://helix:helix@timescaledb.helixobs.svc.cluster.local:5432/helixobs"
+            - name: GRAFANA_URL
+              value: "https://grafana.chimefrb.xyz"
+            - name: SHERLOCK_METRICS_PORT
+              value: "9102"
+          envFrom:
+            - secretRef:
+                name: sherlock-secrets
+          volumeMounts:
+            - name: instruments
+              mountPath: /app/instruments
+              readOnly: true
+          resources:
+            requests:
+              cpu: "250m"
+              memory: 256Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8082
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8082
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 10
+      volumes:
+        - name: instruments
+          emptyDir: {}

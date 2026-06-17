@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ui
+  namespace: helixobs
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ui
+  template:
+    metadata:
+      labels:
+        app: ui
+    spec:
+      containers:
+        - name: ui
+          image: ghcr.io/helixobs/ui:latest
+          ports:
+            - containerPort: 3000
+              name: http
+          env:
+            - name: HERALD_URL
+              value: "http://herald.helixobs.svc.cluster.local:8080"
+            - name: SHERLOCK_URL
+              value: "http://sherlock.helixobs.svc.cluster.local:8082"
+            - name: GRAFANA_URL
+              value: "https://grafana.chimefrb.xyz"
+          resources:
+            requests:
+              cpu: "500m"
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5

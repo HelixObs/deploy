@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-collector
+  namespace: helixobs
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: otel-collector
+  template:
+    metadata:
+      labels:
+        app: otel-collector
+    spec:
+      containers:
+        - name: otel-collector
+          image: otel/opentelemetry-collector-contrib:latest
+          args: ["--config=/etc/otel/config.yml"]
+          ports:
+            - containerPort: 4317
+              name: otlp-grpc
+            - containerPort: 8888
+              name: metrics
+          resources:
+            requests:
+              cpu: "100m"
+              memory: 128Mi
+            limits:
+              cpu: "500m"
+              memory: 256Mi
+          volumeMounts:
+            - name: config
+              mountPath: /etc/otel
+              readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 13133
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: config
+          configMap:
+            name: otel-collector-config

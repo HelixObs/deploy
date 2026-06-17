@@ -1,0 +1,72 @@
+# TimescaleDB Helm values
+# Chart: timescale/timescaledb-single v0.33.1
+# Install:
+#   helm repo add timescale https://charts.timescale.com
+#   helm upgrade --install timescaledb timescale/timescaledb-single \
+#     -n helixobs --create-namespace -f values.yaml \
+#     --set secrets.credentials.PATRONI_SUPERUSER_PASSWORD=<password> \
+#     --set secrets.credentials.PATRONI_REPLICATION_PASSWORD=<password> \
+#     --set secrets.credentials.PATRONI_admin_PASSWORD=<password>
+
+fullnameOverride: timescaledb
+
+replicaCount: 1
+
+image:
+  repository: timescale/timescaledb-ha
+  tag: pg16-latest
+  pullPolicy: IfNotPresent
+
+# Passwords are set via --set at install time, not committed here
+secrets:
+  credentials:
+    PATRONI_SUPERUSER_PASSWORD: ""
+    PATRONI_REPLICATION_PASSWORD: ""
+    PATRONI_admin_PASSWORD: ""
+
+backup:
+  enabled: false
+
+persistentVolumes:
+  data:
+    enabled: true
+    size: 100Gi
+    storageClass: directpv-min-io
+    accessModes:
+      - ReadWriteOnce
+  wal:
+    enabled: true
+    size: 10Gi
+    storageClass: directpv-min-io
+    accessModes:
+      - ReadWriteOnce
+
+resources:
+  requests:
+    cpu: "1"
+    memory: 2Gi
+  limits:
+    cpu: "4"
+    memory: 8Gi
+
+patroni:
+  bootstrap:
+    dcs:
+      synchronous_mode: false
+    pg_hba:
+      - host all helix all md5
+    initdb:
+      - encoding: UTF8
+      - data-checksums
+    # Create the helixobs database and helix user on first boot
+    post_bootstrap: |
+      psql -c "CREATE USER helix WITH PASSWORD 'helix';"
+      psql -c "CREATE DATABASE helixobs OWNER helix;"
+      psql -d helixobs -c "CREATE EXTENSION IF NOT EXISTS timescaledb;"
+  postgresql:
+    parameters:
+      max_connections: 200
+      shared_buffers: 2GB
+      work_mem: 32MB
+      maintenance_work_mem: 256MB
+      effective_cache_size: 6GB

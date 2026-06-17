@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: herald
+  namespace: helixobs
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: herald
+  template:
+    metadata:
+      labels:
+        app: herald
+    spec:
+      containers:
+        - name: herald
+          image: ghcr.io/helixobs/herald:latest
+          ports:
+            - containerPort: 4317
+              name: otlp-grpc
+            - containerPort: 8080
+              name: api
+            - containerPort: 2112
+              name: metrics
+          env:
+            - name: HERALD_ADDR
+              value: ":4317"
+            - name: COLLECTOR_ENDPOINT
+              value: "otel-collector.helixobs.svc.cluster.local:4317"
+            - name: DB_URL
+              value: "postgres://helix:helix@timescaledb.helixobs.svc.cluster.local:5432/helixobs"
+            - name: METRICS_ADDR
+              value: ":2112"
+            - name: API_ADDR
+              value: ":8080"
+            - name: INSTRUMENTS_DIR
+              value: "/instruments"
+            - name: UI_BASE_URL
+              value: "https://helixobs.chimefrb.xyz"
+            - name: GRAFANA_URL
+              value: "https://grafana.chimefrb.xyz"
+          envFrom:
+            - secretRef:
+                name: herald-secrets
+          volumeMounts:
+            - name: instruments
+              mountPath: /instruments
+              readOnly: true
+          resources:
+            requests:
+              cpu: "1"
+              memory: 1Gi
+            limits:
+              cpu: "4"
+              memory: 4Gi
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: 2112
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: 2112
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+      volumes:
+        - name: instruments
+          configMap:
+            name: herald-instruments

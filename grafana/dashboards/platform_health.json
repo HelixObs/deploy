@@ -22,7 +22,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "PC4396ED5D9364568"
       },
       "fieldConfig": {
         "defaults": {
@@ -71,7 +71,11 @@
         {
           "expr": "1 - avg(rate(node_cpu_seconds_total{mode=\"idle\"}[5m]))",
           "legendFormat": "cpu",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PC4396ED5D9364568"
+          }
         }
       ],
       "description": "Percentage of CPU time not spent idle (1 \u2212 idle / total). Warning: > 80% sustained for 10 min. Critical: > 95% for 5 min."
@@ -79,7 +83,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "PC4396ED5D9364568"
       },
       "fieldConfig": {
         "defaults": {
@@ -125,7 +129,11 @@
         {
           "expr": "1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes",
           "legendFormat": "memory",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PC4396ED5D9364568"
+          }
         }
       ],
       "description": "Fraction of host RAM in use (1 \u2212 MemAvailable / MemTotal). Warning: > 85%. Critical: > 95%."
@@ -133,7 +141,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "PC4396ED5D9364568"
       },
       "fieldConfig": {
         "defaults": {
@@ -179,7 +187,11 @@
         {
           "expr": "1 - min(node_filesystem_avail_bytes{fstype!~\"tmpfs|overlay|rootfs\"}) / min(node_filesystem_size_bytes{fstype!~\"tmpfs|overlay|rootfs\"})",
           "legendFormat": "disk",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PC4396ED5D9364568"
+          }
         }
       ],
       "description": "Fraction of filesystem capacity consumed. Warning: < 20% free. Critical: < 10% free."
@@ -187,7 +199,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "PC4396ED5D9364568"
       },
       "fieldConfig": {
         "defaults": {
@@ -207,12 +219,20 @@
         {
           "expr": "rate(node_network_receive_bytes_total[5m])",
           "legendFormat": "rx {{device}}",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PC4396ED5D9364568"
+          }
         },
         {
           "expr": "rate(node_network_transmit_bytes_total[5m])",
           "legendFormat": "tx {{device}}",
-          "refId": "B"
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PC4396ED5D9364568"
+          }
         }
       ],
       "description": "Bytes received and transmitted per second across all network interfaces."
@@ -252,12 +272,20 @@
         {
           "expr": "sum(rate(helix_entities_total[1m])) by (instrument_id)",
           "legendFormat": "{{instrument_id}}",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
         },
         {
           "expr": "rate(helix_spans_passthrough_total[1m])",
           "legendFormat": "passthrough",
-          "refId": "B"
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
         }
       ],
       "description": "Entity spans processed per second, by instrument and status. A sustained drop to zero indicates the pipeline may be stalled."
@@ -285,17 +313,29 @@
         {
           "expr": "histogram_quantile(0.50, sum(rate(helix_span_processing_duration_seconds_bucket[5m])) by (le))",
           "legendFormat": "p50",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
         },
         {
           "expr": "histogram_quantile(0.95, sum(rate(helix_span_processing_duration_seconds_bucket[5m])) by (le))",
           "legendFormat": "p95",
-          "refId": "B"
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
         },
         {
           "expr": "histogram_quantile(0.99, sum(rate(helix_span_processing_duration_seconds_bucket[5m])) by (le))",
           "legendFormat": "p99",
-          "refId": "C"
+          "refId": "C",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
         }
       ],
       "description": "End-to-end herald processing time per helix span \u2014 from receipt to forwarding. Covers TraceStore lookup, DB write scheduling, and span mutation. Alert: p99 > 100 ms."
@@ -325,7 +365,11 @@
         {
           "expr": "rate(helix_parent_resolution_total{result=\"success\"}[5m]) / rate(helix_parent_resolution_total[5m])",
           "legendFormat": "{{instrument_id}}",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
         }
       ],
       "description": "Fraction of helix.parent.ids lookups that resolved to a known span in the TraceStore. Misses are expected when a child arrives before its parent; the attribute is preserved for server-side recovery. Alert: failure rate > 1%."
@@ -355,7 +399,11 @@
         {
           "expr": "rate(helix_db_writes_total{status=\"success\"}[5m]) / rate(helix_db_writes_total[5m])",
           "legendFormat": "{{table}}",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
         }
       ],
       "description": "Fraction of TimescaleDB writes that succeeded, by table. Failures are logged and metered but never block span forwarding. Alert: failure rate > 0.1%."
@@ -383,7 +431,11 @@
         {
           "expr": "process_resident_memory_bytes{job=\"herald\"}",
           "legendFormat": "rss",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
         }
       ],
       "description": "Resident set size of the herald process in bytes. Sustained growth beyond baseline may indicate a TraceStore leak or goroutine accumulation. Alert: > 1.5 GB."
@@ -411,7 +463,11 @@
         {
           "expr": "helix_trace_store_size",
           "legendFormat": "entries",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
         }
       ],
       "description": "Number of entity_id \u2192 SpanRef entries currently held in the in-process TraceStore. When the store is full the oldest entry is evicted (FIFO). Configured maximum: 500 k entries."
@@ -439,12 +495,20 @@
         {
           "expr": "helix_db_connections_in_use",
           "legendFormat": "in use",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
         },
         {
           "expr": "helix_db_connections_total",
           "legendFormat": "total",
-          "refId": "B"
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
         }
       ],
       "description": "pgxpool connections currently acquired vs total pool size. High utilisation means write goroutines are queuing behind the pool. Alert: > 80% utilised."
@@ -472,7 +536,11 @@
         {
           "expr": "rate(helix_errors_total[5m])",
           "legendFormat": "{{instrument_id}}",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
         }
       ],
       "description": "Rate of helix.error span events per second, by instrument. These are domain errors (e.g. RFI contamination, classifier failure), not herald errors. Alert: > 5% of entity rate for 5 min."
@@ -500,17 +568,29 @@
         {
           "expr": "histogram_quantile(0.50, sum(rate(helix_parent_resolution_latency_seconds_bucket[5m])) by (le))",
           "legendFormat": "p50",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
         },
         {
           "expr": "histogram_quantile(0.95, sum(rate(helix_parent_resolution_latency_seconds_bucket[5m])) by (le))",
           "legendFormat": "p95",
-          "refId": "B"
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
         },
         {
           "expr": "histogram_quantile(0.99, sum(rate(helix_parent_resolution_latency_seconds_bucket[5m])) by (le))",
           "legendFormat": "p99",
-          "refId": "C"
+          "refId": "C",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
         }
       ],
       "description": "Time to resolve one parent entity ID to a span link, from lookup start through link construction. Measures the hot path through the TraceStore mutex. Sub-millisecond is normal; spikes indicate lock contention."
@@ -538,12 +618,20 @@
         {
           "expr": "histogram_quantile(0.50, rate(helix_trace_store_lookup_duration_seconds_bucket[5m]))",
           "legendFormat": "p50",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
         },
         {
           "expr": "histogram_quantile(0.95, rate(helix_trace_store_lookup_duration_seconds_bucket[5m]))",
           "legendFormat": "p95",
-          "refId": "B"
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
         }
       ],
       "description": "Time for a single TraceStore Get() call, including mutex acquisition. Expected baseline: < 10 \u00b5s. Elevated values indicate lock contention from high concurrent span throughput."
@@ -807,7 +895,11 @@
         {
           "expr": "up{job=\"herald\"}",
           "legendFormat": "",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
         }
       ],
       "description": "Herald process uptime derived from process_start_time_seconds. Resets on container restart."
@@ -835,17 +927,29 @@
         {
           "expr": "rate(otelcol_receiver_accepted_spans_total[1m])",
           "legendFormat": "accepted",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
         },
         {
           "expr": "rate(otelcol_receiver_refused_spans_total[1m])",
           "legendFormat": "refused",
-          "refId": "B"
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
         },
         {
           "expr": "rate(otelcol_exporter_sent_spans_total[1m])",
           "legendFormat": "exported",
-          "refId": "C"
+          "refId": "C",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
         }
       ],
       "description": "Spans accepted from the herald vs successfully exported to Tempo. A gap between the two indicates export failures. refused_spans > 0 signals backpressure \u2014 the collector is falling behind."
@@ -887,12 +991,20 @@
         {
           "expr": "sum(rate(loki_distributor_lines_received_total[5m]))",
           "legendFormat": "lines/s",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
         },
         {
           "expr": "sum(rate(loki_distributor_bytes_received_total[5m]))",
           "legendFormat": "bytes/s",
-          "refId": "B"
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
         }
       ],
       "description": "Log lines per second arriving at the Loki distributor. A drop to zero means the Alloy sidecar log shipper has stalled."
@@ -920,7 +1032,11 @@
         {
           "expr": "rate(tempo_ingester_traces_created_total[5m])",
           "legendFormat": "traces/s",
-          "refId": "A"
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
         }
       ],
       "description": "Traces received by Tempo and blocks flushed to storage. Block flushes complete a trace's lifecycle; a growing gap between received and flushed indicates flush lag."

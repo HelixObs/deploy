@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: herald
+  namespace: helixobs
+spec:
+  selector:
+    app: herald
+  ports:
+    - name: api
+      port: 8080
+      targetPort: 8080
+    - name: metrics
+      port: 2112
+      targetPort: 2112
+    - name: otlp-grpc
+      port: 4317
+      targetPort: 4317
+  type: ClusterIP
+---
+# Separate LoadBalancer service for OTLP gRPC — externally reachable by CHIME pipeline.
+# Klipper (k3s ServiceLB) will bind port 4317 on all node IPs.
+apiVersion: v1
+kind: Service
+metadata:
+  name: herald-otlp
+  namespace: helixobs
+spec:
+  selector:
+    app: herald
+  ports:
+    - name: otlp-grpc
+      port: 4317
+      targetPort: 4317
+  type: LoadBalancer

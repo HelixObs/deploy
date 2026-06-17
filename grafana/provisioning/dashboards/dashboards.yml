@@ -2,6 +2,7 @@ apiVersion: 1
 
 providers:
   - name: HelixObs
+    folder: HelixObs
     type: file
     disableDeletion: false
     updateIntervalSeconds: 30

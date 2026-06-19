@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: helixobs-datasources
+  namespace: monitoring
+  labels:
+    grafana_datasource: "1"
+data:
+  helixobs-datasources.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: HelixObs TimescaleDB
+        uid: timescaledb
+        type: grafana-postgresql-datasource
+        url: timescaledb.helixobs.svc.cluster.local:5432
+        database: helixobs
+        user: helix
+        secureJsonData:
+          password: helix
+        jsonData:
+          sslmode: disable
+          postgresVersion: 1400
+          timescaledb: true
+      - name: HelixObs Logs
+        uid: loki
+        type: loki
+        url: http://loki-gateway.loki.svc.cluster.local/
+        jsonData:
+          httpHeaderName1: "X-Scope-OrgID"
+        secureJsonData:
+          httpHeaderValue1: "anonymous"
+      - name: HelixObs Traces
+        uid: tempo
+        type: tempo
+        url: http://tempo-gateway.tempo.svc.cluster.local/
+        jsonData:
+          httpHeaderName1: "X-Scope-OrgID"
+        secureJsonData:
+          httpHeaderValue1: "anonymous"
+      - name: HelixObs Metrics
+        uid: prometheus
+        type: prometheus
+        url: http://mimir-gateway.mimir.svc.cluster.local/prometheus
+        jsonData:
+          httpHeaderName1: "X-Scope-OrgID"
+        secureJsonData:
+          httpHeaderValue1: "helixobs"

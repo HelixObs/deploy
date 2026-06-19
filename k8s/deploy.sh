@@ -25,6 +25,16 @@ apply() {
 }
 
 apply otel-collector
+
+# Build herald-migrations ConfigMap from SQL files in the herald repo (sibling directory).
+MIGRATIONS_DIR="$(cd "$DIR/../../herald/migrations" && pwd)"
+echo ""
+echo "==> herald-migrations (from $MIGRATIONS_DIR)"
+kubectl create configmap herald-migrations \
+  --from-file="$MIGRATIONS_DIR" \
+  --namespace "$NAMESPACE" \
+  --dry-run=client -o yaml | kubectl apply -f -
+
 apply herald
 apply sherlock
 apply ui

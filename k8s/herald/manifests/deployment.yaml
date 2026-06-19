@@ -13,6 +13,26 @@ spec:
       labels:
         app: herald
     spec:
+      initContainers:
+        - name: migrate
+          image: postgres:17-alpine
+          command:
+            - sh
+            - -c
+            - |
+              echo "Running migrations..."
+              for f in $(ls /migrations/*.sql | sort); do
+                echo "  → $f"
+                psql "$DB_URL" -f "$f"
+              done
+              echo "Migrations complete."
+          env:
+            - name: DB_URL
+              value: "postgres://helix:helix@timescaledb.helixobs.svc.cluster.local:5432/helixobs"
+          volumeMounts:
+            - name: migrations
+              mountPath: /migrations
+              readOnly: true
       containers:
         - name: herald
           image: ghcr.io/helixobs/herald:latest
@@ -72,3 +92,6 @@ spec:
         - name: instruments
           configMap:
             name: herald-instruments
+        - name: migrations
+          configMap:
+            name: herald-migrations

@@ -49,6 +49,9 @@ jobs:
           repository: HelixObs/client-python
           path: repos/client-python
 
+      - name: Create host directories required by Docker volumes
+        run: sudo mkdir -p /data/db /data/prometheus /data/loki /data/tempo /data/grafana
+
       - name: Start Docker Compose stack
         run: docker compose up -d --build
         env:

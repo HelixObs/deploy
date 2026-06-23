@@ -108,18 +108,9 @@ services:
     command: postgres -c shared_buffers=128MB -c work_mem=4MB -c max_connections=200
     volumes:
       - db-data:/var/lib/postgresql/data
-      # Migrations run automatically on first container start.
-      - ../herald/migrations/001_init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
-      - ../herald/migrations/002_instrument_memory.sql:/docker-entrypoint-initdb.d/002_instrument_memory.sql:ro
-      - ../herald/migrations/003_trace_dedup.sql:/docker-entrypoint-initdb.d/003_trace_dedup.sql:ro
-      - ../herald/migrations/004_sherlock_usage.sql:/docker-entrypoint-initdb.d/004_sherlock_usage.sql:ro
-      - ../herald/migrations/005_entity_events_trace_id.sql:/docker-entrypoint-initdb.d/005_entity_events_trace_id.sql:ro
-      - ../herald/migrations/006_operation_duration.sql:/docker-entrypoint-initdb.d/006_operation_duration.sql:ro
-      - ../herald/migrations/007_entity_events_error_index.sql:/docker-entrypoint-initdb.d/007_entity_events_error_index.sql:ro
-      - ../herald/migrations/008_notifications.sql:/docker-entrypoint-initdb.d/008_notifications.sql:ro
-      - ../herald/migrations/009_monitor_index.sql:/docker-entrypoint-initdb.d/009_monitor_index.sql:ro
-      - ../herald/migrations/010_entity_event_dedup.sql:/docker-entrypoint-initdb.d/010_entity_event_dedup.sql:ro
-      - ../herald/migrations/010_graph_query_indexes.sql:/docker-entrypoint-initdb.d/010_graph_query_indexes.sql:ro
+      # Mount the whole migrations directory — new migrations are picked up automatically.
+      # docker-entrypoint-initdb.d runs *.sql files alphabetically on first start.
+      - ../herald/migrations:/docker-entrypoint-initdb.d:ro
     ports:
       - "5432:5432"
     healthcheck:

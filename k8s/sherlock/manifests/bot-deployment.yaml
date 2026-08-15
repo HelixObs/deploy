@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sherlock-bot
+  namespace: helixobs
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sherlock-bot
+  template:
+    metadata:
+      labels:
+        app: sherlock-bot
+    spec:
+      containers:
+        - name: sherlock-bot
+          image: ghcr.io/helixobs/sherlock:latest
+          command: ["python", "-m", "sherlock.bot"]
+          env:
+            - name: SHERLOCK_API_URL
+              value: "http://sherlock.helixobs.svc.cluster.local:8082"
+          envFrom:
+            - secretRef:
+                name: sherlock-secrets
+          resources:
+            requests:
+              cpu: "100m"
+              memory: 128Mi
+            limits:
+              cpu: "500m"
+              memory: 512Mi

@@ -22,6 +22,8 @@ spec:
             - containerPort: 9102
               name: metrics
           env:
+            - name: INSTRUMENT
+              value: "CHIME"
             - name: SHERLOCK_INSTRUMENTS_DIR
               value: "/app/instruments"
             - name: HERALD_URL

@@ -485,7 +485,7 @@
       },
       "targets": [
         {
-          "rawSql": "SELECT created_at, session_id, instrument_id, entity_id, model, tokens_input + tokens_output AS total_tokens, ROUND(cost_usd::numeric, 4) AS cost_usd, duration_ms, tool_calls, successful FROM sherlock_usage ORDER BY created_at DESC LIMIT 50",
+          "rawSql": "SELECT created_at, session_id, instrument_id, entity_id, model, tokens_input + tokens_output AS total_tokens, ROUND(cost_usd::numeric, 4) AS cost_usd, duration_ms, tool_calls, reached_hypothesis FROM sherlock_usage ORDER BY created_at DESC LIMIT 50",
           "format": "table",
           "refId": "A",
           "datasource": {

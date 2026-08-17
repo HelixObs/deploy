@@ -211,7 +211,87 @@
             ]
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "time"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 180
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "event_name"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 160
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "helix.error": {
+                        "text": "helix.error",
+                        "color": "red",
+                        "index": 0
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic",
+                  "applyToRow": true
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "metadata"
+            },
+            "properties": [
+              {
+                "id": "custom.wrapText",
+                "value": true
+              },
+              {
+                "id": "custom.minWidth",
+                "value": 300
+              },
+              {
+                "id": "custom.styleField",
+                "value": "metadata_style"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "metadata_style"
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom.viz",
+                "value": true
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 9,
@@ -239,7 +319,7 @@
           },
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT\n  to_timestamp(timestamp_ns / 1e9) AS \"time\",\n  event_name,\n  metadata\nFROM entity_events\nWHERE entity_id = '$entity_id'\nORDER BY timestamp_ns ASC",
+          "rawSql": "SELECT\n  to_timestamp(timestamp_ns / 1e9) AS \"time\",\n  event_name,\n  metadata,\n  '{\"font-size\": \"11px\"}' AS metadata_style\nFROM entity_events\nWHERE entity_id = '$entity_id'\nORDER BY timestamp_ns ASC",
           "refId": "A"
         }
       ],

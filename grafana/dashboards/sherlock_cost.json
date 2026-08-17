@@ -1,7 +1,7 @@
 {
   "__inputs": [],
   "__requires": [],
-  "description": "Sherlock AI investigation cost tracking \u2014 token usage, latency, and tool breakdown.",
+  "description": "Sherlock AI investigation dashboard \u2014 cost, token usage, concurrency, latency, and tool breakdown.",
   "editable": true,
   "graphTooltip": 1,
   "id": null,
@@ -568,6 +568,80 @@
         }
       ],
       "description": "Distribution of per-investigation cost at p50 and p95. p95 > $0.10 may indicate investigations are consuming excessive context. Alert: single query > $1."
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0
+        }
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 32
+      },
+      "id": 18,
+      "title": "Concurrent Requests by Type",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sherlock_inflight_requests",
+          "legendFormat": "{{query_type}}",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "description": "Requests currently being processed, from request start to stream completion (session setup, lock wait, model calls, tool execution, guardrail sanitization). A single-replica deployment with no request queue, so sustained highs here are the leading indicator before latency degrades."
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        }
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 32
+      },
+      "id": 19,
+      "title": "Time to First Token (p50 / p95) by Model",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(sherlock_ttfb_seconds_bucket[5m])) by (le, model))",
+          "legendFormat": "p50 {{model}}",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(sherlock_ttfb_seconds_bucket[5m])) by (le, model))",
+          "legendFormat": "p95 {{model}}",
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "description": "Time from an Anthropic API call starting to its first content token — isolates actual model 'thinking' latency from session setup, tool execution, and guardrail sanitization, all of which are included in Query Latency above but not here. Measured per model call, so one multi-turn investigation contributes multiple samples."
     }
   ],
   "refresh": "30s",
@@ -583,7 +657,7 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Sherlock Cost",
+  "title": "Sherlock",
   "uid": "helix-sherlock-cost",
-  "version": 1
+  "version": 2
 }

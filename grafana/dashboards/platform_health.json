@@ -1040,6 +1040,418 @@
         }
       ],
       "description": "Traces received by Tempo and blocks flushed to storage. Block flushes complete a trace's lifecycle; a growing gap between received and flushed indicates flush lag."
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 47
+      },
+      "id": 40,
+      "title": "Canary / Synthetic Probe",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "MISSING"
+                },
+                "1": {
+                  "text": "PRESENT"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 48
+      },
+      "id": 41,
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background"
+      },
+      "title": "Canary — Traces",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "helix_platform_check_presence{signal_source=\"canary\", signal_type=\"traces\"}",
+          "legendFormat": "",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "description": "Whether the synthetic canary trace sent this tick was found in Tempo within the propagation window. The canary has no legitimate reason to ever go quiet — unlike a real instrument, there's no maintenance-window excuse for this to read MISSING."
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "MISSING"
+                },
+                "1": {
+                  "text": "PRESENT"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 4,
+        "y": 48
+      },
+      "id": 42,
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background"
+      },
+      "title": "Canary — Logs (ingestion)",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "helix_platform_check_presence{signal_source=\"canary\", signal_type=\"logs\"}",
+          "legendFormat": "",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "description": "Whether the synthetic canary log sent this tick was found in Loki at all, via the stable service_name label. This only proves ingestion is alive — it does NOT prove the log is queryable the way a real dashboard queries it. During the actual 2026-08-28 incident this stayed PRESENT the entire time; see 'Canary — Logs (dashboard-queryable)' for the panel that would have actually caught it."
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "MISSING"
+                },
+                "1": {
+                  "text": "PRESENT"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 8,
+        "y": 48
+      },
+      "id": 48,
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background"
+      },
+      "title": "Canary — Logs (dashboard-queryable)",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "helix_platform_check_presence{signal_source=\"canary\", signal_type=\"logs_by_label\"}",
+          "legendFormat": "",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "description": "Whether the canary log is queryable via {helix_process_name=\"...\"} — the exact label a real 'Pipeline Process Logs'-style dashboard filters on. This is the panel that actually catches the 2026-08-28 incident: it can read MISSING even while 'Canary — Logs (ingestion)' reads PRESENT, which is precisely what a Loki label-promotion regression looks like (ingestion fine, label gone)."
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 600
+              },
+              {
+                "color": "red",
+                "value": 1200
+              }
+            ]
+          }
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 12,
+        "y": 48
+      },
+      "id": 43,
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background"
+      },
+      "title": "Time Since Last Full Canary Success",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "time() - helix_platform_check_last_success_timestamp_seconds",
+          "legendFormat": "",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "description": "Seconds since both the canary trace and canary log were last confirmed present in the same tick. Thresholds assume the default 300s check interval — adjust if PLATFORM_CHECK_INTERVAL_SECS changes."
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0
+        }
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 16,
+        "y": 48
+      },
+      "id": 44,
+      "title": "Canary Raw Result Counts",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "helix_platform_check_result_count{signal_source=\"canary\"}",
+          "legendFormat": "{{signal_type}}",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "description": "Raw Loki result-stream / Tempo trace count behind the canary presence stats above, before being collapsed into a 0/1 — kept visible so the 'count > 0' presence cutoff can be reevaluated at a different threshold without a code change, while alerting thresholds are still being calibrated."
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "max": 1,
+          "custom": {
+            "fillOpacity": 70,
+            "lineWidth": 0
+          }
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 54
+      },
+      "id": 45,
+      "title": "Canary & Auto-Discovered Service Presence (traces vs logs)",
+      "type": "state-timeline",
+      "targets": [
+        {
+          "expr": "helix_platform_check_presence",
+          "legendFormat": "{{signal_source}} / {{signal_type}}",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "description": "Presence over time for the canary and every real service auto-discovered from recent Loki/Tempo activity (union of both — a service is checked if it shows up on either side, so a service that's gone silent on exactly one side stays visible via the other), split by traces vs logs. This is the same shape of visualization as the Pipeline Process Logs dashboard's Log Volume panel that first surfaced the 2026-08-28 incident — but side by side with traces, so a traces-present/logs-absent split (a pipeline bug) is visually distinct from both going quiet together (the instrument itself being offline). The 'canary / logs_by_label' row specifically is the one that would have caught that incident directly."
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0
+        }
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 62
+      },
+      "id": 46,
+      "title": "Auto-Discovered Service Raw Result Counts",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "helix_platform_check_result_count{signal_source!=\"canary\"}",
+          "legendFormat": "{{signal_source}} / {{signal_type}}",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "description": "Raw Loki result-stream / Tempo trace count per real service, before being collapsed into the presence state timeline above. Services are discovered automatically each tick from recent Loki/Tempo label and tag values — nothing to configure. A service only appears here once it's had traces or logs activity in the lookback window."
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0
+        }
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 62
+      },
+      "id": 47,
+      "title": "Trace/Log Mismatch Rate by Auto-Discovered Service",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum by (service_name, missing_side) (rate(helix_platform_check_mismatch_total[15m]))",
+          "legendFormat": "{{service_name}} missing {{missing_side}}",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "description": "How often an auto-discovered real service showed traces without logs (or vice versa) — the asymmetric case that points at a pipeline bug rather than the instrument being legitimately offline (which silences both sides equally and never appears here). Use this history to calibrate a real alert threshold before wiring one up."
     }
   ],
   "refresh": "15m",

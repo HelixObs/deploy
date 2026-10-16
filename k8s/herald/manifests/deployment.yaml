@@ -60,6 +60,18 @@ spec:
               value: "https://helixobs.chimefrb.xyz"
             - name: GRAFANA_URL
               value: "https://grafana.chimefrb.xyz"
+            - name: LOKI_QUERY_URL
+              value: "http://loki-gateway.loki.svc.cluster.local"
+            - name: LOKI_TENANT
+              value: "anonymous"
+            - name: TEMPO_QUERY_URL
+              value: "http://tempo-gateway.tempo.svc.cluster.local"
+            - name: TEMPO_TENANT
+              value: "anonymous"
+            - name: PLATFORM_CHECK_INTERVAL_SECS
+              value: "300"
+            - name: PLATFORM_CHECK_LOOKBACK_SECS
+              value: "900"
           envFrom:
             - secretRef:
                 name: herald-secrets

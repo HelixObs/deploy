@@ -79,8 +79,23 @@ notifications:
       github:
         repo: "your-org/your-repo"
         labels: ["helixobs", "bug"]
-        auto_close_after_days: 7
         on_recurrence_after_close: reopen   # or "new_issue"
+
+      # Optional: send specific pipeline stages to a different channel
+      # instead of lumping every helix.error into one. Matched against
+      # Event.Stage (populated from the emitting span event's "stage"
+      # metadata) in order, first match wins; falls back to the slack/github
+      # blocks above if Stage is empty or matches nothing here. It's on the
+      # pipeline code to set "stage" correctly — Herald won't fuzzy-match a
+      # typo'd stage name.
+      # routes:
+      #   - match:
+      #       stage: "archive"
+      #     slack:
+      #       channel: "#archive-alerts"
+      #       webhook_env: "MY_INSTRUMENT_ARCHIVE_WEBHOOK"
+      #       sample_window_seconds: 600
+      #       max_per_window: 1
 
     # Example: custom science event — Slack only, high volume allowed.
     # helix.event.detection_confirmed:

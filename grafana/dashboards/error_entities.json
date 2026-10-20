@@ -230,7 +230,7 @@
           "datasource": { "type": "grafana-postgresql-datasource", "uid": "timescaledb" },
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT\n  COALESCE(d.normalised_message, '(no message)')  AS error_message,\n  d.metadata->>'stage'                             AS stage,\n  COUNT(*)                                         AS entities_affected,\n  MAX(d.last_seen_at)                              AS last_seen\nFROM entity_event_dedup d\nWHERE d.event_name = 'helix.error'\n  AND $__timeFilter(d.last_seen_at)\n  AND d.instrument_id ILIKE CASE WHEN '${instrument_id}' IN ('All', '$__all') THEN '%' ELSE '${instrument_id}' END\nGROUP BY d.normalised_message, d.metadata->>'stage', d.instrument_id\nORDER BY entities_affected DESC\nLIMIT 100",
+          "rawSql": "SELECT\n  COALESCE(d.normalised_message, '(no message)')  AS error_message,\n  NULLIF(d.operation, '')                          AS operation,\n  d.metadata->>'stage'                             AS stage,\n  COUNT(*)                                         AS entities_affected,\n  MAX(d.last_seen_at)                              AS last_seen\nFROM entity_event_dedup d\nWHERE d.event_name = 'helix.error'\n  AND $__timeFilter(d.last_seen_at)\n  AND d.instrument_id ILIKE CASE WHEN '${instrument_id}' IN ('All', '$__all') THEN '%' ELSE '${instrument_id}' END\nGROUP BY d.normalised_message, d.operation, d.metadata->>'stage', d.instrument_id\nORDER BY entities_affected DESC\nLIMIT 100",
           "refId": "A"
         }
       ],

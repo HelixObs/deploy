@@ -66,6 +66,15 @@ notifications:
   slack_webhook_env: "MY_INSTRUMENT_SLACK_WEBHOOK"   # env var → Slack webhook URL
   github_token_env:  "MY_INSTRUMENT_GITHUB_TOKEN"    # env var → GitHub PAT
 
+  # Optional playbook links, shown as a Playbook button in Slack and a line in
+  # GitHub issues. With playbook_base, each error links to
+  # <playbook_base>/<operation>, where <operation> is the name the pipeline
+  # passes to tel.operate(...) / tel.create(...). Name each runbook folder or
+  # page after its operation. Links are not checked: a missing page is a 404,
+  # and the alert says to ask the operation's owner to add one.
+  # playbook_base: "https://github.com/your-org/your-repo/tree/main/runbooks"
+  # playbook: "https://wiki.example/YourInstrument/Playbook"  # used when playbook_base is unset
+
   events:
 
     helix.error:
@@ -81,21 +90,21 @@ notifications:
         labels: ["helixobs", "bug"]
         on_recurrence_after_close: reopen   # or "new_issue"
 
-      # Optional: send specific pipeline stages to a different channel
-      # instead of lumping every helix.error into one. Matched against
-      # Event.Stage (populated from the emitting span event's "stage"
-      # metadata) in order, first match wins; falls back to the slack/github
-      # blocks above if Stage is empty or matches nothing here. It's on the
-      # pipeline code to set "stage" correctly — Herald won't fuzzy-match a
-      # typo'd stage name.
-      # routes:
-      #   - match:
-      #       stage: "archive"
+      # Optional: change settings for specific operations. Matched in order
+      # against the operation name (the span name, exact), first match wins.
+      # Add `stage:` to match only events that also carry that "stage"
+      # metadata. Anything an override leaves out is inherited from this
+      # event; `slack: off` / `github: off` turns a destination off.
+      # overrides:
+      #   - match: { operation: "archive-data" }
       #     slack:
       #       channel: "#archive-alerts"
       #       webhook_env: "MY_INSTRUMENT_ARCHIVE_WEBHOOK"
       #       sample_window_seconds: 600
       #       max_per_window: 1
+      #   - match: { operation: "request-callback", stage: "request-to-site-a" }
+      #     playbook: "https://wiki.example/YourInstrument/SiteA"
+      #     github: off
 
     # Example: custom science event — Slack only, high volume allowed.
     # helix.event.detection_confirmed:
